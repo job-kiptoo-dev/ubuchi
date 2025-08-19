@@ -131,11 +131,3 @@ CREATE TRIGGER update_products_updated_at
   BEFORE UPDATE ON products
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- 6. Make sure your user has admin role
--- Replace 'your-user-id' with your actual user ID from auth.users table
--- You can find it in Supabase Dashboard > Authentication > Users
-/*
-UPDATE profiles
-SET role = 'admin'
-WHERE id = 'your-user-id-here';
-*/
