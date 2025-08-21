@@ -1,28 +1,37 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
-import { Loader2, ArrowLeft } from "lucide-react"
-import Link from "next/link"
-import { supabase } from "@/lib/supabase/client"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Loader2, ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { supabase } from "@/lib/supabase/client";
 
 interface ProductFormProps {
-  product?: any
-  isEdit?: boolean
+  product?: any;
+  isEdit?: boolean;
 }
 
-export default function ProductForm({ product, isEdit = false }: ProductFormProps) {
-  const router = useRouter()
-  const [loading, setLoading] = useState(false)
+export default function ProductForm({
+  product,
+  isEdit = false,
+}: ProductFormProps) {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: product?.name || "",
     description: product?.description || "",
@@ -31,50 +40,64 @@ export default function ProductForm({ product, isEdit = false }: ProductFormProp
     image_url: product?.image_url || "",
     stock_quantity: product?.stock_quantity || "",
     is_active: product?.is_active ?? true,
-  })
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
 
     try {
       const productData = {
         ...formData,
-        price: Number.parseFloat(formData.price),
-        stock_quantity: Number.parseInt(formData.stock_quantity),
-      }
+        price: Number(formData.price) || 0,
+        stock_quantity: Number(formData.stock_quantity) || 0,
+      };
 
-      let result
+      let data, error;
       if (isEdit && product) {
-        result = await supabase.from("products").update(productData).eq("id", product.id)
+        const res = await supabase
+          .from("products")
+          .update(productData)
+          .eq("id", product.id);
+        data = res.data;
+        error = res.error;
       } else {
-        result = await supabase.from("products").insert([productData])
+        const res = await supabase.from("products").insert([productData]);
+        data = res.data;
+        error = res.error;
       }
 
-      if (result.error) {
-        throw result.error
+      if (error) {
+        console.error("Supabase error details:", error);
+        throw error;
       }
 
-      router.push("/admin/products")
-      router.refresh()
-    } catch (error) {
-      console.error("Error saving product:", error)
-      alert("Error saving product. Please try again.")
+      router.push("/admin/products");
+      router.refresh();
+    } catch (error: any) {
+      console.error("Error saving product:", error.message || error);
+      alert(`Error saving product: ${error.message || "Please try again."}`);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <Card className="bg-white shadow-lg border-emerald-100">
       <CardHeader>
         <div className="flex items-center gap-4">
           <Link href="/admin/products">
-            <Button variant="outline" size="sm" className="border-emerald-600 text-emerald-600 bg-transparent">
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-emerald-600 text-emerald-600 bg-transparent"
+            >
               <ArrowLeft className="h-4 w-4" />
             </Button>
           </Link>
-          <CardTitle className="text-emerald-800">{isEdit ? "Edit Product" : "Add New Product"}</CardTitle>
+          <CardTitle className="text-emerald-800">
+            {isEdit ? "Edit Product" : "Add New Product"}
+          </CardTitle>
         </div>
       </CardHeader>
       <CardContent>
@@ -87,7 +110,9 @@ export default function ProductForm({ product, isEdit = false }: ProductFormProp
               <Input
                 id="name"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 placeholder="e.g., Ubuntu Harmony Blend"
                 required
                 className="border-emerald-200 focus:border-emerald-500"
@@ -103,7 +128,9 @@ export default function ProductForm({ product, isEdit = false }: ProductFormProp
                 type="number"
                 step="0.01"
                 value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, price: e.target.value })
+                }
                 placeholder="24.99"
                 required
                 className="border-emerald-200 focus:border-emerald-500"
@@ -118,7 +145,9 @@ export default function ProductForm({ product, isEdit = false }: ProductFormProp
             <Textarea
               id="description"
               value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
               placeholder="Describe the tea's benefits, ingredients, and unique qualities..."
               rows={4}
               className="border-emerald-200 focus:border-emerald-500"
@@ -132,13 +161,17 @@ export default function ProductForm({ product, isEdit = false }: ProductFormProp
               </Label>
               <Select
                 value={formData.category}
-                onValueChange={(value) => setFormData({ ...formData, category: value })}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, category: value })
+                }
               >
                 <SelectTrigger className="border-emerald-200 focus:border-emerald-500">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="hormonal_balance">Hormonal Balance</SelectItem>
+                  <SelectItem value="hormonal_balance">
+                    Hormonal Balance
+                  </SelectItem>
                   <SelectItem value="energy">Energy</SelectItem>
                   <SelectItem value="sleep">Sleep</SelectItem>
                   <SelectItem value="wellness">Wellness</SelectItem>
@@ -154,7 +187,9 @@ export default function ProductForm({ product, isEdit = false }: ProductFormProp
                 id="stock_quantity"
                 type="number"
                 value={formData.stock_quantity}
-                onChange={(e) => setFormData({ ...formData, stock_quantity: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, stock_quantity: e.target.value })
+                }
                 placeholder="50"
                 required
                 className="border-emerald-200 focus:border-emerald-500"
@@ -169,7 +204,9 @@ export default function ProductForm({ product, isEdit = false }: ProductFormProp
             <Input
               id="image_url"
               value={formData.image_url}
-              onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, image_url: e.target.value })
+              }
               placeholder="/placeholder.svg?height=400&width=400"
               className="border-emerald-200 focus:border-emerald-500"
             />
@@ -179,7 +216,9 @@ export default function ProductForm({ product, isEdit = false }: ProductFormProp
             <Switch
               id="is_active"
               checked={formData.is_active}
-              onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+              onCheckedChange={(checked) =>
+                setFormData({ ...formData, is_active: checked })
+              }
             />
             <Label htmlFor="is_active" className="text-emerald-700">
               Active (visible to customers)
@@ -187,7 +226,11 @@ export default function ProductForm({ product, isEdit = false }: ProductFormProp
           </div>
 
           <div className="flex gap-4 pt-6">
-            <Button type="submit" disabled={loading} className="bg-emerald-600 hover:bg-emerald-700 flex-1">
+            <Button
+              type="submit"
+              disabled={loading}
+              className="bg-emerald-600 hover:bg-emerald-700 flex-1"
+            >
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -198,7 +241,11 @@ export default function ProductForm({ product, isEdit = false }: ProductFormProp
               )}
             </Button>
             <Link href="/admin/products">
-              <Button type="button" variant="outline" className="border-emerald-600 text-emerald-600 bg-transparent">
+              <Button
+                type="button"
+                variant="outline"
+                className="border-emerald-600 text-emerald-600 bg-transparent"
+              >
                 Cancel
               </Button>
             </Link>
@@ -206,5 +253,5 @@ export default function ProductForm({ product, isEdit = false }: ProductFormProp
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }

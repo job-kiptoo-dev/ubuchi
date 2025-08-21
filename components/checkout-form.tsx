@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Loader2, CreditCard } from "lucide-react"
-import { supabase } from "@/lib/supabase/client"
+import { createClient } from "@/lib/supabase/client"
+// import { supabase } from "@/lib/supabase/client"
 
 interface CheckoutFormProps {
   cartItems: any[]
@@ -35,6 +36,7 @@ export default function CheckoutForm({ cartItems, total }: CheckoutFormProps) {
     setLoading(true)
 
     try {
+      const supabase = createClient()
       const {
         data: { user },
       } = await supabase.auth.getUser()

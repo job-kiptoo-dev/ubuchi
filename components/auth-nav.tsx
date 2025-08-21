@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import CartIcon from "./cart-icon"
+// import { signout } from "@/lib/actions"
 
 interface AuthNavProps {
   user: any

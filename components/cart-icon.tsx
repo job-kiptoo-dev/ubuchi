@@ -5,7 +5,8 @@ import { ShoppingCart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
-import { supabase } from "@/lib/supabase/client"
+import { createClient } from "@/lib/supabase/client"
+// import { supabase } from "@/lib/supabase/client"
 
 interface CartIconProps {
   userId?: string
@@ -13,6 +14,7 @@ interface CartIconProps {
 
 export default function CartIcon({ userId }: CartIconProps) {
   const [itemCount, setItemCount] = useState(0)
+  const supabase = createClient()
 
   useEffect(() => {
     if (!userId) return
@@ -20,6 +22,7 @@ export default function CartIcon({ userId }: CartIconProps) {
     const fetchCartCount = async () => {
       try {
         const { data } = await supabase.from("cart_items").select("quantity").eq("user_id", userId)
+
 
         const total = data?.reduce((sum, item) => sum + item.quantity, 0) || 0
         setItemCount(total)

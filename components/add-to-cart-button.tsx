@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { ShoppingCart, Plus, Minus, Loader2 } from "lucide-react"
-import { supabase } from "@/lib/supabase/client"
+import { createClient} from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 
 interface AddToCartButtonProps {
@@ -18,6 +18,7 @@ export default function AddToCartButton({ product }: AddToCartButtonProps) {
   const handleAddToCart = async () => {
     setLoading(true)
     try {
+      const supabase = createClient()
       const {
         data: { user },
       } = await supabase.auth.getUser()

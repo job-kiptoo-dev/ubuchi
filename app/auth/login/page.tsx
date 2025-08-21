@@ -1,23 +1,23 @@
-import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
+import { createClient} from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import LoginForm from "@/components/login-form";
 
 export default async function LoginPage() {
   // If Supabase is not configured, show setup message directly
-  if (!isSupabaseConfigured) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-emerald-50 to-amber-50">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4 text-emerald-800">
-            Connect Supabase to get started
-          </h1>
-          <p className="text-emerald-600">
-            Please configure your Supabase environment variables
-          </p>
-        </div>
-      </div>
-    );
-  }
+  // if (error) {
+  //   return (
+  //     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-emerald-50 to-amber-50">
+  //       <div className="text-center">
+  //         <h1 className="text-2xl font-bold mb-4 text-emerald-800">
+  //           Connect Supabase to get started
+  //         </h1>
+  //         <p className="text-emerald-600">
+  //           Please configure your Supabase environment variables
+  //         </p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   try {
     // Check if user is already logged in

@@ -5,8 +5,9 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Minus, Trash2, Heart, Moon, Award, Leaf } from "lucide-react"
-import { supabase } from "@/lib/supabase/client"
+// import { supabase } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
+import { createClient } from "@/lib/supabase/client"
 
 interface CartItemsProps {
   cartItems: any[]
@@ -47,6 +48,7 @@ export default function CartItems({ cartItems }: CartItemsProps) {
 
     setLoading(itemId)
     try {
+      const supabase = createClient()
       const { error } = await supabase.from("cart_items").update({ quantity: newQuantity }).eq("id", itemId)
 
       if (error) throw error

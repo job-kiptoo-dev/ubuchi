@@ -20,15 +20,14 @@ export default async function ProductsPage({
 }: {
   searchParams: Record<string, string | string[] | undefined>;
 }) {
-  let supabase;
   let user = null;
   let isAdmin = false;
   let products = null;
   let error = null;
 
+  const supabase = await createClient();
+  const params = await searchParams;
   try {
-    supabase = await createClient();
-
     if (!supabase) {
       throw new Error("Failed to create Supabase client");
     }
@@ -40,7 +39,7 @@ export default async function ProductsPage({
     } = await supabase.auth.getUser();
 
     if (authError) {
-      console.error("Auth error:", authError);
+      console.log("Auth error:", authError);
     } else {
       user = authUser;
     }
@@ -54,7 +53,7 @@ export default async function ProductsPage({
         .single();
 
       if (profileError) {
-        console.error("Profile error:", profileError);
+        console.log("Profile error:", profileError);
       } else {
         isAdmin = profile?.role === "admin";
       }
@@ -63,29 +62,31 @@ export default async function ProductsPage({
     // Build and execute products query
     let query = supabase.from("products").select("*").eq("is_active", true);
 
-    if (searchParams.category) {
-      query = query.eq("category", searchParams.category);
+    if (params.category) {
+      query = query.eq("category", params.category);
     }
 
-    if (searchParams.search) {
+    if (params.search) {
       query = query.or(
-        `name.ilike.%${searchParams.search}%,description.ilike.%${searchParams.search}%`,
+        `name.ilike.%${params.search}%,description.ilike.%${params.search}%`,
       );
     }
 
-    const { data: productsData, error: productsError } = await query.order("created_at", {
-      ascending: false,
-    });
+    const { data: productsData, error: productsError } = await query.order(
+      "created_at",
+      {
+        ascending: false,
+      },
+    );
 
     if (productsError) {
-      console.error("Products error:", productsError);
+      console.log("Products error:", productsError);
       error = "Failed to load products";
     } else {
       products = productsData;
     }
-
-  } catch (err) {
-    console.error("Error setting up Supabase:", err);
+  } catch (error) {
+    console.log("Error setting up Supabase:", err);
     error = "Service temporarily unavailable";
   }
 
@@ -194,8 +195,16 @@ export default async function ProductsPage({
           <div className="mb-8 p-4 bg-red-50 border border-red-200 rounded-lg">
             <div className="flex items-center">
               <div className="text-red-600">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                <svg
+                  className="w-5 h-5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </div>
               <p className="ml-2 text-red-700 font-medium">{error}</p>
@@ -310,14 +319,19 @@ export default async function ProductsPage({
                 </p>
               </Link>
 
-              <Link href="/products?category=sleep" className="text-center group">
+              <Link
+                href="/products?category=sleep"
+                className="text-center group"
+              >
                 <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-indigo-200 transition-colors">
                   <Moon className="h-8 w-8 text-indigo-600" />
                 </div>
                 <h3 className="font-semibold text-emerald-800 mb-2">
                   Sleep Support
                 </h3>
-                <p className="text-sm text-amber-700">Restful evening rituals</p>
+                <p className="text-sm text-amber-700">
+                  Restful evening rituals
+                </p>
               </Link>
 
               <Link

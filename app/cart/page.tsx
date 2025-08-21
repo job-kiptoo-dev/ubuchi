@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+// import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,7 @@ import { Leaf, ShoppingBag, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import AuthNav from "@/components/auth-nav";
 import CartItems from "@/components/cart-items";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function CartPage() {
   const supabase = await createClient();
