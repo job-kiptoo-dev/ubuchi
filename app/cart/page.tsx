@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Leaf, ShoppingBag, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import AuthNav from "@/components/auth-nav";
-import CartItems from "@/components/cart-items";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function CartPage() {
