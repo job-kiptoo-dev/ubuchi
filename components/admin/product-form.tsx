@@ -19,7 +19,8 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Loader2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase/client";
+import { createClient } from "@/lib/supabase/client";
+// import { supabase } from "@/lib/supabase/client";
 
 interface ProductFormProps {
   product?: any;
@@ -46,6 +47,7 @@ export default function ProductForm({
     e.preventDefault();
     setLoading(true);
 
+    const supabase = createClient();
     try {
       const productData = {
         ...formData,
