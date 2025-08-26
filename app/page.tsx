@@ -5,6 +5,7 @@ import { Leaf, Heart, Moon, Users, MapPin, Award } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import AuthNav from "@/components/auth-nav";
+import Image from "next/image";
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -170,8 +171,10 @@ export default async function HomePage() {
               </Button>
             </div>
             <div className="relative">
-              <img
-                src="/placeholder.svg?height=600&width=500"
+              <Image
+                src="/placeholder.svg"
+                height={600}
+                width={500}
                 alt="Kenyan tea farmer"
                 className="rounded-lg shadow-2xl"
               />
@@ -194,8 +197,10 @@ export default async function HomePage() {
           <div className="grid md:grid-cols-4 gap-8">
             <div className="text-center">
               <div className="relative mb-6">
-                <img
-                  src="/placeholder.svg?height=300&width=300"
+                <Image
+                  src="/placeholder.svg"
+                  height={300}
+                  width={300}
                   alt="Handpicking tea leaves"
                   className="rounded-lg shadow-lg mx-auto"
                 />
@@ -214,8 +219,10 @@ export default async function HomePage() {
 
             <div className="text-center">
               <div className="relative mb-6">
-                <img
-                  src="/placeholder.svg?height=300&width=300"
+                <Image
+                  src="/placeholder.svg"
+                  height={300}
+                  width={300}
                   alt="Sun drying tea"
                   className="rounded-lg shadow-lg mx-auto"
                 />
@@ -234,8 +241,10 @@ export default async function HomePage() {
 
             <div className="text-center">
               <div className="relative mb-6">
-                <img
-                  src="/placeholder.svg?height=300&width=300"
+                <Image
+                  src="/placeholder.svg"
+                  height={300}
+                  width={300}
                   alt="Sorting and packaging"
                   className="rounded-lg shadow-lg mx-auto"
                 />
@@ -252,8 +261,10 @@ export default async function HomePage() {
 
             <div className="text-center">
               <div className="relative mb-6">
-                <img
-                  src="/placeholder.svg?height=300&width=300"
+                <Image
+                  src="/placeholder.svg"
+                  height={300}
+                  width={300}
                   alt="Shipped with care"
                   className="rounded-lg shadow-lg mx-auto"
                 />

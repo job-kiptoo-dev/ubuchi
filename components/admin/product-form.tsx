@@ -1,7 +1,5 @@
 "use client";
-
 import type React from "react";
-
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -20,7 +18,6 @@ import { Switch } from "@/components/ui/switch";
 import { Loader2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-// import { supabase } from "@/lib/supabase/client";
 
 interface ProductFormProps {
   product?: any;
@@ -36,10 +33,10 @@ export default function ProductForm({
   const [formData, setFormData] = useState({
     name: product?.name || "",
     description: product?.description || "",
-    price: product?.price || "",
+    price: product?.price?.toString() || "",
     category: product?.category || "",
     image_url: product?.image_url || "",
-    stock_quantity: product?.stock_quantity || "",
+    stock_quantity: product?.stock_quantity?.toString() || "",
     is_active: product?.is_active ?? true,
   });
 
@@ -47,41 +44,67 @@ export default function ProductForm({
     e.preventDefault();
     setLoading(true);
 
-    const supabase = createClient();
     try {
+      // Validate required fields
+      if (!formData.name.trim()) {
+        throw new Error("Product name is required");
+      }
+      if (!formData.price || isNaN(Number(formData.price))) {
+        throw new Error("Valid price is required");
+      }
+      if (!formData.category) {
+        throw new Error("Category is required");
+      }
+      if (!formData.stock_quantity || isNaN(Number(formData.stock_quantity))) {
+        throw new Error("Valid stock quantity is required");
+      }
+
+      const supabase = createClient(); // Remove await - client function is synchronous
+
       const productData = {
-        ...formData,
-        price: Number(formData.price) || 0,
-        stock_quantity: Number(formData.stock_quantity) || 0,
+        name: formData.name.trim(),
+        description: formData.description.trim(),
+        price: Number(formData.price),
+        category: formData.category,
+        image_url: formData.image_url.trim() || null,
+        stock_quantity: Number(formData.stock_quantity),
+        is_active: formData.is_active,
       };
 
-      let data, error;
-      if (isEdit && product) {
-        const res = await supabase
+      let result;
+
+      if (isEdit && product?.id) {
+        result = await supabase
           .from("products")
           .update(productData)
-          .eq("id", product.id);
-        data = res.data;
-        error = res.error;
+          .eq("id", product.id)
+          .select(); // Add select() to get the updated data back
       } else {
-        const res = await supabase.from("products").insert([productData]);
-        data = res.data;
-        error = res.error;
+        result = await supabase
+          .from("products")
+          .insert([productData])
+          .select(); // Add select() to get the inserted data back
       }
 
-      if (error) {
-        console.error("Supabase error details:", error);
-        throw error;
+      if (result.error) {
+        console.error("Supabase error details:", result.error);
+        throw new Error(result.error.message || "Database error occurred");
       }
 
+      // Success - redirect to products page
       router.push("/admin/products");
       router.refresh();
+
     } catch (error: any) {
-      console.error("Error saving product:", error.message || error);
+      console.error("Error saving product:", error);
       alert(`Error saving product: ${error.message || "Please try again."}`);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleInputChange = (field: string, value: string | boolean) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   return (
@@ -92,7 +115,7 @@ export default function ProductForm({
             <Button
               variant="outline"
               size="sm"
-              className="border-emerald-600 text-emerald-600 bg-transparent"
+              className="border-emerald-600 text-emerald-600 bg-transparent hover:bg-emerald-50"
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
@@ -102,19 +125,18 @@ export default function ProductForm({
           </CardTitle>
         </div>
       </CardHeader>
+
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label htmlFor="name" className="text-emerald-700">
-                Product Name
+                Product Name *
               </Label>
               <Input
                 id="name"
                 value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
+                onChange={(e) => handleInputChange("name", e.target.value)}
                 placeholder="e.g., Ubuntu Harmony Blend"
                 required
                 className="border-emerald-200 focus:border-emerald-500"
@@ -123,16 +145,15 @@ export default function ProductForm({
 
             <div className="space-y-2">
               <Label htmlFor="price" className="text-emerald-700">
-                Price ($)
+                Price ($) *
               </Label>
               <Input
                 id="price"
                 type="number"
                 step="0.01"
+                min="0"
                 value={formData.price}
-                onChange={(e) =>
-                  setFormData({ ...formData, price: e.target.value })
-                }
+                onChange={(e) => handleInputChange("price", e.target.value)}
                 placeholder="24.99"
                 required
                 className="border-emerald-200 focus:border-emerald-500"
@@ -147,9 +168,7 @@ export default function ProductForm({
             <Textarea
               id="description"
               value={formData.description}
-              onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
-              }
+              onChange={(e) => handleInputChange("description", e.target.value)}
               placeholder="Describe the tea's benefits, ingredients, and unique qualities..."
               rows={4}
               className="border-emerald-200 focus:border-emerald-500"
@@ -159,13 +178,12 @@ export default function ProductForm({
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label htmlFor="category" className="text-emerald-700">
-                Category
+                Category *
               </Label>
               <Select
                 value={formData.category}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, category: value })
-                }
+                onValueChange={(value) => handleInputChange("category", value)}
+                required
               >
                 <SelectTrigger className="border-emerald-200 focus:border-emerald-500">
                   <SelectValue placeholder="Select category" />
@@ -183,15 +201,14 @@ export default function ProductForm({
 
             <div className="space-y-2">
               <Label htmlFor="stock_quantity" className="text-emerald-700">
-                Stock Quantity
+                Stock Quantity *
               </Label>
               <Input
                 id="stock_quantity"
                 type="number"
+                min="0"
                 value={formData.stock_quantity}
-                onChange={(e) =>
-                  setFormData({ ...formData, stock_quantity: e.target.value })
-                }
+                onChange={(e) => handleInputChange("stock_quantity", e.target.value)}
                 placeholder="50"
                 required
                 className="border-emerald-200 focus:border-emerald-500"
@@ -205,11 +222,10 @@ export default function ProductForm({
             </Label>
             <Input
               id="image_url"
+              type="url"
               value={formData.image_url}
-              onChange={(e) =>
-                setFormData({ ...formData, image_url: e.target.value })
-              }
-              placeholder="/placeholder.svg?height=400&width=400"
+              onChange={(e) => handleInputChange("image_url", e.target.value)}
+              placeholder="https://example.com/image.jpg"
               className="border-emerald-200 focus:border-emerald-500"
             />
           </div>
@@ -218,9 +234,7 @@ export default function ProductForm({
             <Switch
               id="is_active"
               checked={formData.is_active}
-              onCheckedChange={(checked) =>
-                setFormData({ ...formData, is_active: checked })
-              }
+              onCheckedChange={(checked) => handleInputChange("is_active", checked)}
             />
             <Label htmlFor="is_active" className="text-emerald-700">
               Active (visible to customers)
@@ -242,11 +256,13 @@ export default function ProductForm({
                 <>{isEdit ? "Update Product" : "Create Product"}</>
               )}
             </Button>
+
             <Link href="/admin/products">
               <Button
                 type="button"
                 variant="outline"
-                className="border-emerald-600 text-emerald-600 bg-transparent"
+                disabled={loading}
+                className="border-emerald-600 text-emerald-600 bg-transparent hover:bg-emerald-50"
               >
                 Cancel
               </Button>

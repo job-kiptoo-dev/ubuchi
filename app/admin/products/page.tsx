@@ -5,10 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Edit, Trash2, Eye } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function AdminProducts() {
   const supabase = await createClient();
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -64,9 +65,13 @@ export default async function AdminProducts() {
                     <div className="w-24 h-24 bg-emerald-100 rounded-lg flex items-center justify-center overflow-hidden">
                       {product.image_url ? (
                         <Image
-                          src={product.image_url || "/placeholder.svg"}
+                          src={product.image_url}
                           alt={product.name}
+                          width={96}
+                          height={96}
                           className="w-full h-full object-cover"
+                          placeholder="blur"
+                          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
                         />
                       ) : (
                         <div className="text-emerald-600 text-xs text-center">
@@ -96,10 +101,10 @@ export default async function AdminProducts() {
                                       : "bg-emerald-100 text-emerald-700"
                               }
                             >
-                              {product.category.replace("_", " ")}
+                              {product.category?.replace("_", " ") || "General"}
                             </Badge>
                             <span className="text-sm text-amber-600">
-                              Stock: {product.stock_quantity}
+                              Stock: {product.stock_quantity || 0}
                             </span>
                             <Badge
                               variant={
@@ -113,14 +118,14 @@ export default async function AdminProducts() {
 
                         <div className="text-right">
                           <div className="text-2xl font-bold text-emerald-800 mb-2">
-                            ${Number.parseFloat(product.price).toFixed(2)}
+                            ${Number.parseFloat(product.price || 0).toFixed(2)}
                           </div>
                           <div className="flex gap-2">
                             <Link href={`/admin/products/${product.id}`}>
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="border-emerald-600 text-emerald-600 bg-transparent"
+                                className="border-emerald-600 text-emerald-600 bg-transparent hover:bg-emerald-50"
                               >
                                 <Eye className="h-4 w-4" />
                               </Button>
@@ -129,7 +134,7 @@ export default async function AdminProducts() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="border-amber-600 text-amber-600 bg-transparent"
+                                className="border-amber-600 text-amber-600 bg-transparent hover:bg-amber-50"
                               >
                                 <Edit className="h-4 w-4" />
                               </Button>
@@ -137,7 +142,7 @@ export default async function AdminProducts() {
                             <Button
                               size="sm"
                               variant="outline"
-                              className="border-red-600 text-red-600 bg-transparent"
+                              className="border-red-600 text-red-600 bg-transparent hover:bg-red-50"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>

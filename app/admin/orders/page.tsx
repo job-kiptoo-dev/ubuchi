@@ -1,30 +1,42 @@
-import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Eye, Package } from "lucide-react"
 import Link from "next/link"
+import { createClient } from "@/lib/supabase/server"
+// import { createClient } from "@/lib/supabase/client"
+// import { createClient } from "@/lib/supabase/server"
 
 export default async function AdminOrders() {
-  const supabase = createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const supabase = await createClient()
 
-  if (!user) {
+  // Get user with error handling
+  const { data: { user }, error: userError } = await supabase.auth.getUser()
+
+  if (userError || !user) {
+    console.error('Auth error:', userError)
     redirect("/auth/login")
   }
 
-  // Check if user is admin
-  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single()
+  // Check if user is admin with error handling
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single()
+
+  if (profileError) {
+    console.error('Profile fetch error:', profileError)
+    redirect("/")
+  }
 
   if (!profile || profile.role !== "admin") {
     redirect("/")
   }
 
   // Get all orders with user information
-  const { data: orders } = await supabase
+  const { data: orders, error: ordersError } = await supabase
     .from("orders")
     .select(`
       *,
@@ -35,12 +47,17 @@ export default async function AdminOrders() {
     `)
     .order("created_at", { ascending: false })
 
+  if (ordersError) {
+    console.error('Orders fetch error:', ordersError)
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-emerald-800 mb-2">Order Management</h1>
           <p className="text-amber-700">Track and manage customer orders</p>
+          <p className="text-sm text-emerald-600">Logged in as: {user.email}</p>
         </div>
 
         <div className="space-y-6">
@@ -51,7 +68,9 @@ export default async function AdminOrders() {
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-4 mb-2">
-                        <h3 className="text-lg font-semibold text-emerald-800">Order #{order.id.slice(0, 8)}</h3>
+                        <h3 className="text-lg font-semibold text-emerald-800">
+                          Order #{order.id.slice(0, 8)}
+                        </h3>
                         <Badge
                           variant={
                             order.status === "delivered"
@@ -77,7 +96,6 @@ export default async function AdminOrders() {
                         <p>Order Date: {new Date(order.created_at).toLocaleDateString()}</p>
                       </div>
                     </div>
-
                     <div className="text-right">
                       <div className="text-2xl font-bold text-emerald-800 mb-2">
                         ${Number.parseFloat(order.total_amount).toFixed(2)}

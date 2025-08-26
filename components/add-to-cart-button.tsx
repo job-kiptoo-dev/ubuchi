@@ -1,31 +1,31 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { ShoppingCart, Plus, Minus, Loader2 } from "lucide-react"
-import { createClient} from "@/lib/supabase/client"
-import { useRouter } from "next/navigation"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { ShoppingCart, Plus, Minus, Loader2 } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
 
 interface AddToCartButtonProps {
-  product: any
+  product: any;
 }
 
 export default function AddToCartButton({ product }: AddToCartButtonProps) {
-  const [quantity, setQuantity] = useState(1)
-  const [loading, setLoading] = useState(false)
-  const router = useRouter()
+  const [quantity, setQuantity] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const handleAddToCart = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const supabase = createClient()
+      const supabase = createClient();
       const {
         data: { user },
-      } = await supabase.auth.getUser()
+      } = await supabase.auth.getUser();
 
       if (!user) {
-        router.push("/auth/login")
-        return
+        router.push("/auth/login");
+        return;
       }
 
       // Check if item already exists in cart
@@ -34,16 +34,16 @@ export default function AddToCartButton({ product }: AddToCartButtonProps) {
         .select("*")
         .eq("user_id", user.id)
         .eq("product_id", product.id)
-        .single()
+        .single();
 
       if (existingItem) {
         // Update quantity
         const { error } = await supabase
           .from("cart_items")
           .update({ quantity: existingItem.quantity + quantity })
-          .eq("id", existingItem.id)
+          .eq("id", existingItem.id);
 
-        if (error) throw error
+        if (error) throw error;
       } else {
         // Add new item
         const { error } = await supabase.from("cart_items").insert([
@@ -52,27 +52,30 @@ export default function AddToCartButton({ product }: AddToCartButtonProps) {
             product_id: product.id,
             quantity: quantity,
           },
-        ])
+        ]);
 
-        if (error) throw error
+        if (error) throw error;
       }
 
       // Show success message or redirect to cart
-      alert("Added to cart!")
+      alert("Added to cart!");
     } catch (error) {
-      console.error("Error adding to cart:", error)
-      alert("Error adding to cart. Please try again.")
+      console.error("Error adding to cart:", error);
+      alert("Error adding to cart. Please try again.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   if (product.stock_quantity === 0) {
     return (
-      <Button disabled className="w-full bg-gray-300 text-gray-500 cursor-not-allowed py-6 text-lg">
+      <Button
+        disabled
+        className="w-full bg-gray-300 text-gray-500 cursor-not-allowed py-6 text-lg"
+      >
         Out of Stock
       </Button>
-    )
+    );
   }
 
   return (
@@ -88,11 +91,15 @@ export default function AddToCartButton({ product }: AddToCartButtonProps) {
           >
             <Minus className="h-4 w-4" />
           </Button>
-          <span className="w-12 text-center font-medium text-emerald-800">{quantity}</span>
+          <span className="w-12 text-center font-medium text-emerald-800">
+            {quantity}
+          </span>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setQuantity(Math.min(product.stock_quantity, quantity + 1))}
+            onClick={() =>
+              setQuantity(Math.min(product.stock_quantity, quantity + 1))
+            }
             className="border-emerald-200 text-emerald-700"
           >
             <Plus className="h-4 w-4" />
@@ -113,10 +120,11 @@ export default function AddToCartButton({ product }: AddToCartButtonProps) {
         ) : (
           <>
             <ShoppingCart className="h-5 w-5 mr-2" />
-            Add to Cart - ${(Number.parseFloat(product.price) * quantity).toFixed(2)}
+            Add to Cart - $
+            {(Number.parseFloat(product.price) * quantity).toFixed(2)}
           </>
         )}
       </Button>
     </div>
-  )
+  );
 }

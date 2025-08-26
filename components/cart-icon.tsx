@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
-// import { supabase } from "@/lib/supabase/client"
 
 interface CartIconProps {
   userId?: string
@@ -53,7 +52,7 @@ export default function CartIcon({ userId }: CartIconProps) {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [userId])
+  }, [userId,supabase])
 
   return (
     <Link href="/cart">

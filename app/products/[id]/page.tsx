@@ -1,4 +1,5 @@
 // import { createClient } from "@/lib/supabase/serveVr";
+
 import { notFound } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,16 +16,21 @@ import {
 import Link from "next/link";
 import AuthNav from "@/components/auth-nav";
 import AddToCartButton from "@/components/add-to-cart-button";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/supabase/server";
+import Image from "next/image";
 
 interface ProductPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
-  const supabase = createClient();
+  const supabase = await createClient();
+
+  // Await the params Promise
+  const { id } = await params;
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -43,7 +49,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const { data: product } = await supabase
     .from("products")
     .select("*")
-    .eq("id", params.id)
+    .eq("id", id)
     .single();
 
   if (!product || !product.is_active) {
@@ -137,8 +143,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
               className={`aspect-square bg-gradient-to-br ${getCategoryGradient(product.category)} rounded-2xl flex items-center justify-center overflow-hidden shadow-lg`}
             >
               {product.image_url ? (
-                <img
+                <Image
                   src={product.image_url || "/placeholder.svg"}
+                  width={600}
+                  height={600}
                   alt={product.name}
                   className="w-full h-full object-cover"
                 />

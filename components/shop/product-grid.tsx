@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Package } from "lucide-react"
 import AddToCartButton from "./add-to-cart-button"
+import Image from "next/image"
 
 interface Product {
   id: string
@@ -57,7 +58,7 @@ export default function ProductGrid({ products }: ProductGridProps) {
           <Link href={`/shop/products/${product.id}`}>
             <div className="aspect-square bg-gray-100 overflow-hidden">
               {product.image_url ? (
-                <img
+                <Image
                   src={product.image_url || "/placeholder.svg"}
                   alt={product.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"

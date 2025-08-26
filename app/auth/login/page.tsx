@@ -2,6 +2,7 @@ import { createClient} from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import LoginForm from "@/components/login-form";
 
+export const dynamic = "force-dynamic";
 export default async function LoginPage() {
   // If Supabase is not configured, show setup message directly
   // if (error) {

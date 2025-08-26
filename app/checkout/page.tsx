@@ -5,9 +5,10 @@ import { Leaf } from "lucide-react"
 import Link from "next/link"
 import AuthNav from "@/components/auth-nav"
 import CheckoutForm from "@/components/checkout-form"
+import Image from "next/image"
 
 export default async function CheckoutPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -91,7 +92,7 @@ export default async function CheckoutPage() {
                   >
                     <div className="w-16 h-16 bg-emerald-100 rounded-lg flex items-center justify-center overflow-hidden">
                       {item.products.image_url ? (
-                        <img
+                        <Image
                           src={item.products.image_url || "/placeholder.svg"}
                           alt={item.products.name}
                           className="w-full h-full object-cover"
