@@ -1,22 +1,10 @@
-// import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import SignUpForm from "@/components/sign-up-form";
 import { createClient } from "@/lib/supabase/client";
 
 export const dynamic = "force-dynamic";
-export default async function SignUpPage() {
-  // If Supabase is not configured, show setup message directly
-  // if (!isSupabaseConfigured) {
-  //   return (
-  //     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-emerald-50 to-amber-50">
-  //       <h1 className="text-2xl font-bold mb-4 text-emerald-800">
-  //         Connect Supabase to get started
-  //       </h1>
-  //     </div>
-  //   );
-  // }
 
-  // Check if user is already logged in
+export default async function SignUpPage() {
   const supabase = await createClient();
   const {
     data: { session },

@@ -76,7 +76,7 @@ CREATE POLICY "Anyone can view active products" ON public.products
 CREATE POLICY "Admins can manage products" ON public.products
   FOR ALL USING (
     EXISTS (
-      SELECT 1 FROM public.profiles 
+      SELECT 1 FROM public.profiles
       WHERE id = auth.uid() AND role = 'admin'
     )
   );
@@ -91,7 +91,7 @@ CREATE POLICY "Users can create own orders" ON public.orders
 CREATE POLICY "Admins can view all orders" ON public.orders
   FOR SELECT USING (
     EXISTS (
-      SELECT 1 FROM public.profiles 
+      SELECT 1 FROM public.profiles
       WHERE id = auth.uid() AND role = 'admin'
     )
   );
@@ -100,7 +100,7 @@ CREATE POLICY "Admins can view all orders" ON public.orders
 CREATE POLICY "Users can view own order items" ON public.order_items
   FOR SELECT USING (
     EXISTS (
-      SELECT 1 FROM public.orders 
+      SELECT 1 FROM public.orders
       WHERE id = order_id AND user_id = auth.uid()
     )
   );
@@ -108,7 +108,7 @@ CREATE POLICY "Users can view own order items" ON public.order_items
 CREATE POLICY "Users can create order items for own orders" ON public.order_items
   FOR INSERT WITH CHECK (
     EXISTS (
-      SELECT 1 FROM public.orders 
+      SELECT 1 FROM public.orders
       WHERE id = order_id AND user_id = auth.uid()
     )
   );
@@ -132,3 +132,52 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+
+CREATE TABLE IF NOT EXISTS public.payments (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  order_id UUID REFERENCES public.orders(id) ON DELETE CASCADE,
+  phone_number TEXT NOT NULL,
+  amount DECIMAL(10,2) NOT NULL,
+  mpesa_receipt_number TEXT,
+  transaction_status TEXT DEFAULT 'pending' CHECK (transaction_status IN ('pending', 'paid', 'failed')),
+  callback_metadata JSONB,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
+
+-- Customers can view their own payments (through orders)
+CREATE POLICY "Users can view own payments" ON public.payments
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM public.orders
+      WHERE public.orders.id = order_id AND public.orders.user_id = auth.uid()
+    )
+  );
+
+-- Insert policy (only via your backend after order creation)
+CREATE POLICY "Allow insert payments via backend" ON public.payments
+  FOR INSERT WITH CHECK (true);
+
+
+-- Create checkout table
+CREATE TABLE IF NOT EXISTS checkout (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  total_amount NUMERIC(10,2) NOT NULL,
+  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'paid', 'failed', 'cancelled')),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- Optional: a join table for checkout items
+CREATE TABLE IF NOT EXISTS checkout_items (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  checkout_id UUID REFERENCES checkout(id) ON DELETE CASCADE,
+  product_id UUID REFERENCES products(id) ON DELETE CASCADE,
+  quantity INT NOT NULL CHECK (quantity > 0),
+  price NUMERIC(10,2) NOT NULL
+);
+
