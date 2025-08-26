@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import SignUpForm from "@/components/sign-up-form";
 import { createClient } from "@/lib/supabase/client";
 
+export const dynamic = "force-dynamic";
 export default async function SignUpPage() {
   // If Supabase is not configured, show setup message directly
   // if (!isSupabaseConfigured) {
