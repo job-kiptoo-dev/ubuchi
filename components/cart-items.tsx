@@ -5,19 +5,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Minus, Trash2, Heart, Moon, Award, Leaf } from "lucide-react";
-// import { supabase } from "@/lib/supabase/client"
-import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Image from "next/image";
+import { toast } from "sonner";
 
 interface CartItemsProps {
   cartItems: any[];
 }
 
 export default function CartItems({ cartItems }: CartItemsProps) {
+  const [items, setItems] = useState(cartItems);
   const [loading, setLoading] = useState<string | null>(null);
-  const router = useRouter();
-
   const supabase = createClient();
 
   const getCategoryIcon = (category: string) => {
@@ -46,6 +44,7 @@ export default function CartItems({ cartItems }: CartItemsProps) {
     }
   };
 
+  // ✅ Optimistic quantity update
   const updateQuantity = async (
     itemId: string,
     newQuantity: number,
@@ -53,7 +52,16 @@ export default function CartItems({ cartItems }: CartItemsProps) {
   ) => {
     if (newQuantity < 1 || newQuantity > maxStock) return;
 
-    setLoading(itemId);
+    // Save old state in case we need rollback
+    const prevItems = [...items];
+
+    // Optimistically update UI
+    setItems((current) =>
+      current.map((item) =>
+        item.id === itemId ? { ...item, quantity: newQuantity } : item,
+      ),
+    );
+
     try {
       const { error } = await supabase
         .from("cart_items")
@@ -61,18 +69,19 @@ export default function CartItems({ cartItems }: CartItemsProps) {
         .eq("id", itemId);
 
       if (error) throw error;
-
-      router.refresh();
     } catch (error) {
       console.error("Error updating quantity:", error);
-      alert("Error updating quantity. Please try again.");
-    } finally {
-      setLoading(null);
+      toast.error("Could not update quantity");
+      setItems(prevItems); // rollback
     }
   };
 
   const removeItem = async (itemId: string) => {
-    setLoading(itemId);
+    const prevItems = [...items];
+
+    // Optimistically remove
+    setItems((current) => current.filter((item) => item.id !== itemId));
+
     try {
       const { error } = await supabase
         .from("cart_items")
@@ -80,19 +89,16 @@ export default function CartItems({ cartItems }: CartItemsProps) {
         .eq("id", itemId);
 
       if (error) throw error;
-
-      router.refresh();
     } catch (error) {
       console.error("Error removing item:", error);
-      alert("Error removing item. Please try again.");
-    } finally {
-      setLoading(null);
+      toast.error("Could not remove item");
+      setItems(prevItems); // rollback
     }
   };
 
   return (
     <div className="space-y-4">
-      {cartItems.map((item) => (
+      {items.map((item) => (
         <Card key={item.id} className="bg-white shadow-lg border-emerald-100">
           <CardContent className="p-6">
             <div className="flex items-center gap-6">
@@ -146,7 +152,7 @@ export default function CartItems({ cartItems }: CartItemsProps) {
                             item.products.stock_quantity,
                           )
                         }
-                        disabled={loading === item.id || item.quantity <= 1}
+                        disabled={item.quantity <= 1}
                         className="border-emerald-200 text-emerald-700 h-8 w-8 p-0"
                       >
                         <Minus className="h-4 w-4" />
@@ -164,10 +170,7 @@ export default function CartItems({ cartItems }: CartItemsProps) {
                             item.products.stock_quantity,
                           )
                         }
-                        disabled={
-                          loading === item.id ||
-                          item.quantity >= item.products.stock_quantity
-                        }
+                        disabled={item.quantity >= item.products.stock_quantity}
                         className="border-emerald-200 text-emerald-700 h-8 w-8 p-0"
                       >
                         <Plus className="h-4 w-4" />
@@ -185,7 +188,6 @@ export default function CartItems({ cartItems }: CartItemsProps) {
                       variant="outline"
                       size="sm"
                       onClick={() => removeItem(item.id)}
-                      disabled={loading === item.id}
                       className="border-red-200 text-red-600 hover:bg-red-50"
                     >
                       <Trash2 className="h-4 w-4" />
