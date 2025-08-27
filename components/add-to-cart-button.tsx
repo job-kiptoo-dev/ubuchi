@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ShoppingCart, Plus, Minus, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface AddToCartButtonProps {
   product: any;
@@ -58,10 +59,10 @@ export default function AddToCartButton({ product }: AddToCartButtonProps) {
       }
 
       // Show success message or redirect to cart
-      alert("Added to cart!");
+      toast.success(`Added ${quantity} × ${product.name} to cart`);
     } catch (error) {
       console.error("Error adding to cart:", error);
-      alert("Error adding to cart. Please try again.");
+      toast.error("Could not add item to cart. Please try again.");
     } finally {
       setLoading(false);
     }
