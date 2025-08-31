@@ -148,6 +148,8 @@ export default async function OrdersPage() {
                                     "/placeholder.svg"
                                   }
                                   alt={item.products.name}
+                                  width={500}
+                                  height={500}
                                   className="w-full h-full object-cover"
                                 />
                               ) : (

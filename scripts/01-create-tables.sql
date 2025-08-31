@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS public.order_items (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   order_id UUID REFERENCES public.orders(id) ON DELETE CASCADE,
   product_id UUID REFERENCES public.products(id) ON DELETE CASCADE,
+  phoneNumber INTEGER NOT NULL,
   quantity INTEGER NOT NULL,
   price DECIMAL(10,2) NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()

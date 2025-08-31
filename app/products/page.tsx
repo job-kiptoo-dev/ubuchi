@@ -21,7 +21,6 @@ interface ProductsPageProps {
 export default async function ProductsPage({
   searchParams,
 }: ProductsPageProps) {
-  // Await the searchParams Promise
   const resolvedSearchParams = await searchParams;
 
   let user = null;
@@ -35,7 +34,6 @@ export default async function ProductsPage({
       throw new Error("Failed to create Supabase client");
     }
 
-    // Get user authentication
     const {
       data: { user: authUser },
       error: authError,
@@ -47,7 +45,6 @@ export default async function ProductsPage({
       user = authUser;
     }
 
-    // Get user profile for admin check
     if (user) {
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
@@ -62,14 +59,12 @@ export default async function ProductsPage({
       }
     }
 
-    // Build and execute products query
     let query = supabase
       .from("products")
       .select("*")
       .eq("is_active", true)
       .order("created_at", { ascending: false });
 
-    // Apply filters using resolved searchParams
     if (resolvedSearchParams.category) {
       query = query.eq("category", resolvedSearchParams.category);
     }
@@ -91,17 +86,16 @@ export default async function ProductsPage({
     error = "Service temporarily unavailable";
   }
 
-  // If critical error, show error page
   if (!supabase) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50">
+      <div className="min-h-screen bg-neutral-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center">
-            <Leaf className="h-16 w-16 text-emerald-300 mx-auto mb-4" />
-            <h1 className="text-2xl font-bold text-red-600 mb-4">
+            <Leaf className="h-16 w-16 text-emerald-600 mx-auto mb-4" />
+            <h1 className="text-2xl font-serif text-neutral-900 mb-4">
               Service Unavailable
             </h1>
-            <p className="text-gray-600">
+            <p className="text-neutral-600 font-light">
               We're experiencing technical difficulties. Please try again later.
             </p>
           </div>
@@ -113,49 +107,51 @@ export default async function ProductsPage({
   const getCategoryIcon = (category: string) => {
     switch (category) {
       case "hormonal_balance":
-        return <Heart className="h-6 w-6" />;
+        return <Heart className="h-6 w-6 text-emerald-600" />;
       case "energy":
-        return <Award className="h-6 w-6" />;
+        return <Award className="h-6 w-6 text-amber-600" />;
       case "sleep":
-        return <Moon className="h-6 w-6" />;
+        return <Moon className="h-6 w-6 text-emerald-600" />;
       default:
-        return <Leaf className="h-6 w-6" />;
+        return <Leaf className="h-6 w-6 text-emerald-600" />;
     }
   };
 
   const getCategoryColor = (category: string) => {
     switch (category) {
       case "hormonal_balance":
-        return "bg-rose-100 text-rose-700";
+        return "bg-amber-200 text-amber-800";
       case "energy":
-        return "bg-amber-100 text-amber-700";
+        return "bg-amber-200 text-amber-800";
       case "sleep":
-        return "bg-indigo-100 text-indigo-700";
+        return "bg-amber-200 text-amber-800";
       default:
-        return "bg-emerald-100 text-emerald-700";
+        return "bg-amber-200 text-amber-800";
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50">
-      {/* Navigation */}
-      <nav className="bg-white/95 backdrop-blur-sm border-b border-emerald-100 sticky top-0 z-50">
+    <div className="min-h-screen bg-neutral-50">
+      <nav className="bg-neutral-50/95 backdrop-blur-sm border-b border-neutral-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="flex items-center space-x-2">
               <Leaf className="h-8 w-8 text-emerald-600" />
-              <span className="text-2xl font-bold text-emerald-800">
+              <span className="text-2xl font-serif text-neutral-900">
                 Ūbūchi
               </span>
             </Link>
             <div className="hidden md:flex items-center space-x-8">
               <Link
                 href="/"
-                className="text-amber-700 hover:text-emerald-800 transition-colors"
+                className="text-neutral-600 hover:text-neutral-900 transition-colors font-medium"
               >
                 Home
               </Link>
-              <Link href="/products" className="text-emerald-800 font-medium">
+              <Link
+                href="/products"
+                className="text-neutral-600 hover:text-neutral-900 transition-colors font-medium"
+              >
                 Shop
               </Link>
               <AuthNav user={user} isAdmin={isAdmin} />
@@ -165,21 +161,18 @@ export default async function ProductsPage({
       </nav>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-emerald-800 mb-4">
+          <h1 className="text-4xl font-serif text-neutral-900 mb-4">
             Our Tea Collection
           </h1>
-          <p className="text-xl text-amber-700 max-w-2xl mx-auto">
+          <p className="text-xl text-neutral-600 font-light max-w-2xl mx-auto">
             Discover wellness teas crafted with African traditions and modern
             science
           </p>
         </div>
 
-        {/* Search and Filters */}
         <div className="mb-8">
           <div className="flex flex-col lg:flex-row gap-8">
-            {/* Filters Sidebar */}
             <div className="lg:w-64 flex-shrink-0">
               <Suspense fallback={<div>Loading filters...</div>}>
                 <ProductFilters
@@ -188,23 +181,20 @@ export default async function ProductsPage({
               </Suspense>
             </div>
 
-            {/* Main Content */}
             <div className="flex-1">
-              {/* Search Header */}
               <div className="flex justify-between items-center mb-8">
-                <h2 className="text-2xl font-bold text-emerald-800">
+                <h2 className="text-2xl font-serif text-neutral-900">
                   {resolvedSearchParams.category
                     ? `${resolvedSearchParams.category.replace("_", " ").replace(/\b\w/g, (l) => l.toUpperCase())} Teas`
                     : resolvedSearchParams.search
                       ? `Search Results for "${resolvedSearchParams.search}"`
                       : "All Teas"}
                 </h2>
-                <p className="text-amber-700">
+                <p className="text-neutral-600 font-light">
                   {products?.length || 0} products
                 </p>
               </div>
 
-              {/* Error Message */}
               {error && (
                 <div className="mb-8 p-4 bg-red-50 border border-red-200 rounded-lg">
                   <div className="flex items-center">
@@ -226,16 +216,15 @@ export default async function ProductsPage({
                 </div>
               )}
 
-              {/* Products Grid */}
               <Suspense fallback={<div>Loading products...</div>}>
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                   {products && products.length > 0 ? (
                     products.map((product) => (
                       <Card
                         key={product.id}
-                        className="bg-white shadow-lg border-emerald-100 hover:shadow-xl transition-shadow overflow-hidden"
+                        className="bg-neutral-50 shadow-lg border border-neutral-200 hover:shadow-xl transition-shadow overflow-hidden"
                       >
-                        <div className="aspect-square bg-gradient-to-br from-emerald-100 to-amber-100 flex items-center justify-center relative">
+                        <div className="aspect-square bg-amber-200 flex items-center justify-center relative">
                           {product.image_url ? (
                             <Image
                               src={product.image_url || "/placeholder.svg"}
@@ -251,7 +240,7 @@ export default async function ProductsPage({
                           )}
                           {product.stock_quantity <= 5 &&
                             product.stock_quantity > 0 && (
-                              <Badge className="absolute top-2 right-2 bg-amber-100 text-amber-700">
+                              <Badge className="absolute top-2 right-2 bg-amber-200 text-amber-800">
                                 Low Stock
                               </Badge>
                             )}
@@ -267,18 +256,18 @@ export default async function ProductsPage({
                           >
                             {product.category.replace("_", " ")}
                           </Badge>
-                          <h3 className="text-xl font-semibold text-emerald-800 mb-2">
+                          <h3 className="text-xl font-serif text-neutral-900 mb-2">
                             {product.name}
                           </h3>
-                          <p className="text-amber-700 mb-4 line-clamp-3">
+                          <p className="text-neutral-600 font-light mb-4 line-clamp-3">
                             {product.description}
                           </p>
                           <div className="flex items-center justify-between">
-                            <span className="text-2xl font-bold text-emerald-800">
+                            <span className="text-2xl font-serif text-neutral-900">
                               ${Number.parseFloat(product.price).toFixed(2)}
                             </span>
                             <Link href={`/products/${product.id}`}>
-                              <Button className="bg-emerald-600 hover:bg-emerald-700">
+                              <Button className="bg-emerald-600 hover:bg-emerald-700 font-medium transition-transform hover:scale-105">
                                 View Details
                               </Button>
                             </Link>
@@ -288,11 +277,11 @@ export default async function ProductsPage({
                     ))
                   ) : !error ? (
                     <div className="col-span-full text-center py-12">
-                      <Leaf className="h-16 w-16 text-emerald-300 mx-auto mb-4" />
-                      <h3 className="text-xl font-semibold text-emerald-800 mb-2">
+                      <Leaf className="h-16 w-16 text-emerald-600 mx-auto mb-4" />
+                      <h3 className="text-xl font-serif text-neutral-900 mb-2">
                         No products found
                       </h3>
-                      <p className="text-amber-700">
+                      <p className="text-neutral-600 font-light">
                         {resolvedSearchParams.search
                           ? `No products match "${resolvedSearchParams.search}". Try a different search term.`
                           : "Try adjusting your search or filter criteria"}
@@ -305,12 +294,11 @@ export default async function ProductsPage({
           </div>
         </div>
 
-        {/* Categories Overview - Only show if no error and no active filters */}
         {!error &&
           !resolvedSearchParams.search &&
           !resolvedSearchParams.category && (
-            <div className="mt-16 bg-white rounded-2xl shadow-lg border-emerald-100 p-8">
-              <h2 className="text-2xl font-bold text-emerald-800 text-center mb-8">
+            <div className="mt-16 bg-neutral-50 rounded-2xl shadow-lg border border-neutral-200 p-8">
+              <h2 className="text-2xl font-serif text-neutral-900 text-center mb-8">
                 Shop by Wellness Goal
               </h2>
               <div className="grid md:grid-cols-4 gap-6">
@@ -318,13 +306,13 @@ export default async function ProductsPage({
                   href="/products?category=hormonal_balance"
                   className="text-center group"
                 >
-                  <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-rose-200 transition-colors">
-                    <Heart className="h-8 w-8 text-rose-600" />
+                  <div className="w-16 h-16 bg-amber-200 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-amber-300 transition-colors">
+                    <Heart className="h-8 w-8 text-emerald-600" />
                   </div>
-                  <h3 className="font-semibold text-emerald-800 mb-2">
+                  <h3 className="font-serif text-neutral-900 mb-2">
                     Hormonal Balance
                   </h3>
-                  <p className="text-sm text-amber-700">
+                  <p className="text-sm text-neutral-600 font-light">
                     Support your natural rhythm
                   </p>
                 </Link>
@@ -332,13 +320,13 @@ export default async function ProductsPage({
                   href="/products?category=energy"
                   className="text-center group"
                 >
-                  <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-amber-200 transition-colors">
+                  <div className="w-16 h-16 bg-amber-200 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-amber-300 transition-colors">
                     <Award className="h-8 w-8 text-amber-600" />
                   </div>
-                  <h3 className="font-semibold text-emerald-800 mb-2">
+                  <h3 className="font-serif text-neutral-900 mb-2">
                     Energy Boost
                   </h3>
-                  <p className="text-sm text-amber-700">
+                  <p className="text-sm text-neutral-600 font-light">
                     Natural vitality enhancement
                   </p>
                 </Link>
@@ -346,13 +334,13 @@ export default async function ProductsPage({
                   href="/products?category=sleep"
                   className="text-center group"
                 >
-                  <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-indigo-200 transition-colors">
-                    <Moon className="h-8 w-8 text-indigo-600" />
+                  <div className="w-16 h-16 bg-amber-200 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-amber-300 transition-colors">
+                    <Moon className="h-8 w-8 text-emerald-600" />
                   </div>
-                  <h3 className="font-semibold text-emerald-800 mb-2">
+                  <h3 className="font-serif text-neutral-900 mb-2">
                     Sleep Support
                   </h3>
-                  <p className="text-sm text-amber-700">
+                  <p className="text-sm text-neutral-600 font-light">
                     Restful evening rituals
                   </p>
                 </Link>
@@ -360,13 +348,13 @@ export default async function ProductsPage({
                   href="/products?category=wellness"
                   className="text-center group"
                 >
-                  <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-emerald-200 transition-colors">
+                  <div className="w-16 h-16 bg-amber-200 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-amber-300 transition-colors">
                     <Leaf className="h-8 w-8 text-emerald-600" />
                   </div>
-                  <h3 className="font-semibold text-emerald-800 mb-2">
+                  <h3 className="font-serif text-neutral-900 mb-2">
                     General Wellness
                   </h3>
-                  <p className="text-sm text-amber-700">
+                  <p className="text-sm text-neutral-600 font-light">
                     Overall health support
                   </p>
                 </Link>

@@ -1,6 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Inter, Playfair_Display } from "next/font/google"
+import { Inter, Lora, Playfair_Display } from "next/font/google"
 import "./globals.css"
 import { Toaster } from "@/components/ui/sonner"
 
@@ -10,6 +10,7 @@ const inter = Inter({
   variable: "--font-inter",
 })
 
+const lora = Lora({ subsets: ['latin'] });
 const playfair = Playfair_Display({
   subsets: ["latin"],
   display: "swap",
@@ -31,7 +32,7 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${playfair.variable} antialiased`}>
       <body className="font-sans">
         {children}
-<Toaster/>
+        <Toaster />
       </body>
     </html>
   )
