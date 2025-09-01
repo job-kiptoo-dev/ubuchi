@@ -1,16 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { Exo } from "next/font/google";
-import { clientIp, whitelist } from "@/actions/ip";
+import { createClient } from "@/lib/supabase/client";
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest, { params }: { params: { securityKey: string } }) {
   const data = await request.json();
-  const { securityKey } = request.params;
+  const supabase = createClient();
+  const { securityKey } = params;
 
+  const clientIp = request.headers.get('x-forwarded-for') || request.headers.get('remote-addr');
+  const whitelist = [
+    '196.201.214.200',
+    '196.201.214.206',
+    '196.201.213.114',
+    '196.201.214.207',
+    '196.201.214.208',
+    '196.201.213.44',
+    '196.201.212.127',
+    '196.201.212.138',
+    '196.201.212.129',
+    '196.201.212.136',
+    '196.201.212.74',
+    '196.201.212.69'
+  ];
 
-  if (!whitelist.includes(clientIp)) {
-    return NextResponse.json({ error: 'IP not whitelisted' }, { status: 403 });
+  if (!clientIp || !whitelist.includes(clientIp)) {
+    return NextResponse.json(
+      { error: "IP not whitelisted" },
+      { status: 403 }
+    );
   }
+
 
   if (securityKey !== process.env.MPESA_CALLBACK_SECRET_KEY) {
     // ignore the requets
@@ -34,11 +52,9 @@ export async function POST(request: NextRequest) {
   const phoneNumber = phoneNumberObj?.Value?.toString();
 
   try {
-    const supabase = createClient();
 
     // save transaction
-    const { data: payment, error } = await supabase
-      .from("payments")
+    const { data: payment, error } = await supabase.from("payments")
       .update({
         amount,
         phone_number: phoneNumber,
