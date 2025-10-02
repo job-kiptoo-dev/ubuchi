@@ -4,7 +4,7 @@ import AuthNav from "./auth-nav";
 import { createClient } from "@/lib/supabase/server";
 
 
-export default async function NavBar({ params }: NavBarProps) {
+export default async function NavBar() {
 
   const supabase = await createClient();
 
