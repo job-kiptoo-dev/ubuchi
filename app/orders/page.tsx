@@ -65,13 +65,13 @@ export default async function OrdersPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50">
       {/* Navigation */}
-      <nav className="bg-white/95 backdrop-blur-sm border-b border-emerald-100 sticky top-0 z-50">
+      <nav className="bg-white/75 backdrop-blur-sm border-b border-emerald-100 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="flex items-center space-x-2">
               <Leaf className="h-8 w-8 text-emerald-600" />
-              <span className="text-2xl font-bold text-emerald-800">
-                Ūbūchi
+              <span className="text-2xl font-semibold text-emerald-800">
+                Úbūchi
               </span>
             </Link>
             <div className="hidden md:flex items-center space-x-8">
@@ -106,7 +106,7 @@ export default async function OrdersPage() {
             {orders.map((order) => (
               <Card
                 key={order.id}
-                className="bg-white shadow-lg border-emerald-100"
+                className="bg-white/15   border-emerald-100"
               >
                 <CardHeader>
                   <div className="flex items-center justify-between">

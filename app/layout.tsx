@@ -51,7 +51,7 @@ export default async function RootLayout({
   }
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable} antialiased`}>
-      <body className="font-sans">
+      <body className="font-sans select-none ">
         {/* <NavBar /> */}
         {children}
         <Toaster />

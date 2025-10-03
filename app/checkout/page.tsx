@@ -63,8 +63,8 @@ export default async function CheckoutPage() {
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="flex items-center space-x-2">
               <Leaf className="h-8 w-8 text-emerald-600" />
-              <span className="text-2xl font-bold text-emerald-800">
-                Ūbūchi
+              <span className="text-2xl font-semibold text-emerald-800">
+                Úbūchi
               </span>
             </Link>
             <div className="hidden md:flex items-center space-x-8">

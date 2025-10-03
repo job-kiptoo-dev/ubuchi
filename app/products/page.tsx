@@ -138,10 +138,11 @@ export default async function ProductsPage({
             <Link href="/" className="flex items-center space-x-2">
               <Leaf className="h-8 w-8 text-emerald-600" />
               <span className="text-2xl font-serif text-neutral-900">
-                Ūbūchi
+                Úbūchi
               </span>
             </Link>
             <div className="hidden md:flex items-center space-x-8">
+
               <Link
                 href="/"
                 className="text-neutral-600 hover:text-neutral-900 transition-colors font-medium"
