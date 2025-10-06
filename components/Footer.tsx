@@ -1,4 +1,4 @@
-import { footerSections } from "@/lib/Links/footerLink";
+import { footerSections, footerT, LinkItem } from "@/lib/Links/footerLink";
 import { Leaf } from "lucide-react";
 import Link from "next/link";
 
@@ -24,23 +24,24 @@ export default function Footer() {
             <div key={title}>
               <h3 className="font-serif mb-4 text-neutral-900">{title}</h3>
               <ul className="space-y-2 text-neutral-600 font-light">
-                {links.map(({ href, label, external }) => (
-                  <li key={href}>
-                    {external ? (
+                {links.map((link: LinkItem) => (
+
+                  <li key={link.href}>
+                    {link.external ? (
                       <Link
-                        href={href}
+                        href={link.href}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="hover:text-neutral-900 transition-colors"
                       >
-                        {label}
+                        {link.label}
                       </Link>
                     ) : (
                       <Link
-                        href={href}
+                        href={link.href}
                         className="hover:text-neutral-900 transition-colors"
                       >
-                        {label}
+                        {link.label}
                       </Link>
                     )}
                   </li>
