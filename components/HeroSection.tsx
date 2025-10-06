@@ -23,7 +23,7 @@ export default function HeroSection() {
       <div className="relative z-10 text-center text-white max-w-5xl mx-auto px-4 animate-in fade-in slide-in-from-bottom-8 duration-700">
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 mb-8 animate-in fade-in slide-in-from-top-4 duration-100 delay-75">
           <Sparkles className="w-4 h-4 text-emerald-400" />
-          <span className="text-sm font-medium">Handpicked by 10,000+ wellness enthusiasts</span>
+          <span className="text-sm font-medium">Handpicked by 500+ wellness enthusiasts</span>
         </div>
 
         <h1 className="font-serif mb-6 text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-bold text-balance leading-[1.1] animate-in fade-in slide-in-from-bottom-6 duration-700 delay-300">
