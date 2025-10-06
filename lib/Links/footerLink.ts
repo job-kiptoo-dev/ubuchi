@@ -1,4 +1,15 @@
-export const footerSections = [
+type LinkItem = {
+  href: string;
+  label: string;
+  external?: boolean;
+};
+
+type FooterSection = {
+  title: string;
+  links: LinkItem[];
+};
+
+export const footerSections: FooterSection[] = [
   {
     title: "Shop",
     links: [
@@ -27,3 +38,4 @@ export const footerSections = [
     ],
   },
 ];
+
