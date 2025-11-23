@@ -1,14 +1,12 @@
 import { notFound } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Heart, Moon, Award, Leaf, ArrowLeft, ShoppingCart } from "lucide-react"
+import { Heart, Award, Leaf, ArrowLeft, ShoppingCart } from "lucide-react"
 import Link from "next/link"
 import AuthNav from "@/components/auth-nav"
 import AddToCartButton from "@/components/add-to-cart-button"
 import { createClient } from "@/lib/supabase/server"
 import Image from "next/image"
-import { motion } from "framer-motion"
-
 
 interface ProductPageProps {
   params: Promise<{
@@ -18,8 +16,6 @@ interface ProductPageProps {
 
 export default async function ProductPage({ params }: ProductPageProps) {
   const supabase = await createClient()
-
-  // Await the params Promise
   const { id } = await params
 
   const {
@@ -32,49 +28,42 @@ export default async function ProductPage({ params }: ProductPageProps) {
     isAdmin = profile?.role === "admin"
   }
 
-  // Get product details
-  const { data: product } = await supabase.from("products").select("*").eq("id", id).single()
+  // Fetch product and sizes separately
+  const [productResult, sizesResult] = await Promise.all([
+    supabase.from("products").select("*").eq("id", id).single(),
+    supabase.from("product_sizes").select("*").eq("product_id", id).order("size_grams", { ascending: true })
+  ])
+
+  const product = productResult.data
+  const sizes = sizesResult.data || []
 
   if (!product || !product.is_active) {
     notFound()
   }
 
   const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case "hormonal_balance":
-        return <Heart className="h-8 w-8" />
-      case "energy":
-        return <Award className="h-8 w-8" />
-      case "sleep":
-        return <Moon className="h-8 w-8" />
+    switch (category.toLowerCase()) {
+      case "tea":
+        return <Leaf className="h-8 w-8 text-emerald-600" />
+      case "coffee":
+        return <Award className="h-8 w-8 text-amber-600" />
+      case "chocolate":
+        return <Heart className="h-8 w-8 text-rose-600" />
       default:
-        return <Leaf className="h-8 w-8" />
+        return <Leaf className="h-8 w-8 text-emerald-600" />
     }
   }
 
   const getCategoryColor = (category: string) => {
-    switch (category) {
-      case "hormonal_balance":
-        return "bg-rose-100 text-rose-700"
-      case "energy":
-        return "bg-amber-100 text-amber-700"
-      case "sleep":
-        return "bg-indigo-100 text-indigo-700"
-      default:
+    switch (category.toLowerCase()) {
+      case "tea":
         return "bg-emerald-100 text-emerald-700"
-    }
-  }
-
-  const getCategoryGradient = (category: string) => {
-    switch (category) {
-      case "hormonal_balance":
-        return "from-rose-100 to-pink-100"
-      case "energy":
-        return "from-amber-100 to-orange-100"
-      case "sleep":
-        return "from-indigo-100 to-purple-100"
+      case "coffee":
+        return "bg-amber-100 text-amber-700"
+      case "chocolate":
+        return "bg-rose-100 text-rose-700"
       default:
-        return "from-emerald-100 to-teal-100"
+        return "bg-neutral-100 text-neutral-700"
     }
   }
 
@@ -85,7 +74,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center space-x-2">
             <Leaf className="h-8 w-8 text-emerald-600" />
-            <span className="text-2xl font-bold text-emerald-800">Ūbūchi</span>
+            <span className="text-2xl font-serif text-neutral-900">Úbūchi</span>
           </Link>
           <div className="flex items-center gap-8">
             <Link href="/products" className="text-sm text-gray-700 hover:text-gray-900">
@@ -108,14 +97,18 @@ export default async function ProductPage({ params }: ProductPageProps) {
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20">
           {/* Product Image - Left Side */}
           <div className="flex items-center justify-center">
-            <div className="w-full aspect-square bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden">
-              {product.image_url ? (
+            <div className="w-full aspect-square bg-gradient-to-br from-amber-50 to-emerald-50 rounded-lg flex items-center justify-center overflow-hidden">
+              {product.image_url && 
+               product.image_url !== 'https://example.com/tea.jpg' && 
+               product.image_url !== 'https://example.com/coffee.jpg' && 
+               product.image_url !== 'https://example.com/chocolate.jpg' ? (
                 <Image
-                  src={product.image_url || "/placeholder.svg"}
+                  src={product.image_url}
                   width={600}
                   height={600}
                   alt={product.name}
                   className="w-full h-full object-cover"
+                  priority
                 />
               ) : (
                 <div className="text-gray-400 flex items-center justify-center">
@@ -130,58 +123,77 @@ export default async function ProductPage({ params }: ProductPageProps) {
             {/* Title and Price */}
             <div>
               <Badge className={`mb-4 ${getCategoryColor(product.category)}`}>
-                {product.category.replace("_", " ")}
+                {product.category}
               </Badge>
-              <h1 className="text-5xl font-light text-gray-900 mb-6">{product.name}</h1>
+              <h1 className="text-5xl font-serif text-gray-900 mb-6">{product.name}</h1>
               <div className="mb-4">
-                <span className="text-2xl font-light text-gray-900">
-                  {Number.parseFloat(product.price).toFixed(2)} usd
+                <span className="text-3xl font-serif text-gray-900">
+                  KSh {Number(product.price).toFixed(2)}
                 </span>
+                <span className="text-sm text-gray-500 ml-2">base price</span>
               </div>
-              {product.sku && <p className="text-xs tracking-wider text-gray-500">#{product.sku}</p>}
             </div>
 
             {/* Description */}
             <div>
-              <p className="text-sm leading-relaxed text-gray-700 mb-4">{product.description}</p>
-              {/* <button className="text-xs font-medium text-gray-900 tracking-wide hover:text-gray-600 transition-colors"> */}
-              {/*   READ MORE */}
-              {/* </button> */}
+              <p className="text-base leading-relaxed text-gray-700 mb-4">{product.description}</p>
             </div>
 
             {/* Size Selection */}
-            <div>
-              <h3 className="text-xs font-semibold tracking-wider text-gray-900 mb-4">SIZE 50 GRAM</h3>
-              <div className="flex gap-3">
-                <button className="px-6 py-3 border border-gray-900 text-sm text-gray-900 hover:bg-gray-900 hover:text-white transition-colors">
-                  50 GRAM
-                </button>
-                <button className="px-6 py-3 border border-gray-300 text-sm text-gray-600 hover:border-gray-900 transition-colors">
-                  1000 GRAM
-                </button>
+            {sizes.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold tracking-wider text-gray-900 mb-4">
+                  AVAILABLE SIZES
+                </h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {sizes.map((size) => (
+                    <div
+                      key={size.id}
+                      className="p-4 border border-gray-300 rounded-md hover:border-emerald-600 transition-colors cursor-pointer group"
+                    >
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium text-gray-900 group-hover:text-emerald-600">
+                          {size.size_grams}g
+                        </span>
+                        <span className="text-lg font-serif text-gray-900 mt-1">
+                          KSh {Number(size.price).toFixed(2)}
+                        </span>
+                        <span className="text-xs text-gray-500 mt-1">
+                          {size.stock_quantity > 0 
+                            ? `${size.stock_quantity} in stock` 
+                            : 'Out of stock'}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
+            )}
+
+            {/* Stock Information */}
+            <div className="bg-gray-50 p-4 rounded-md">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-700">Total Available:</span>
+                <span className="text-sm font-medium text-gray-900">
+                  {product.stock_quantity} units
+                </span>
+              </div>
+              {sizes.length > 0 && (
+                <div className="mt-2 pt-2 border-t border-gray-200">
+                  <p className="text-xs text-gray-600">
+                    Available in {sizes.length} different size{sizes.length > 1 ? 's' : ''}
+                  </p>
+                </div>
+              )}
             </div>
 
-            {/* Packaging Selection */}
-            <div>
-              <h3 className="text-xs font-semibold tracking-wider text-gray-900 mb-4">PACKAGING BAG</h3>
-              <div className="flex gap-3">
-                <button className="px-6 py-3 border border-gray-900 text-sm text-gray-900 hover:bg-gray-900 hover:text-white transition-colors">
-                  BAG
-                </button>
-                <button className="px-6 py-3 border border-gray-300 text-sm text-gray-600 hover:border-gray-900 transition-colors">
-                  BAG W/ STORAGE TIN
-                </button>
-              </div>
-            </div>
-
-            {/* Quantity and Add to Cart */}
+            {/* Add to Cart */}
             {user ? (
-              <AddToCartButton product={product} />
+              <AddToCartButton product={product} sizes={sizes} />
             ) : (
               <div className="space-y-4">
                 <div className="space-y-3">
-                  <Button disabled className="w-full bg-gray-300 text-gray-500 cursor-not-allowed py-6 text-base">
+                  <Button disabled className="w-full bg-gray-300 text-gray-500 cursor-not-allowed py-6 text-base rounded-md">
                     <ShoppingCart className="h-5 w-5 mr-2" />
                     Sign in to Purchase
                   </Button>
@@ -201,14 +213,75 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
             {/* Store Info */}
             <div className="border-t border-gray-200 pt-6">
-              <p className="text-xs text-gray-600 mb-2">Pickup available at Roskilde - Warehouse</p>
-              <p className="text-xs text-gray-500 mb-4">Usually ready in 24 hours</p>
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <Leaf className="h-5 w-5 text-emerald-600 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Premium Quality</p>
+                    <p className="text-xs text-gray-600">Carefully sourced and packaged</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <ShoppingCart className="h-5 w-5 text-emerald-600 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Fast Delivery</p>
+                    <p className="text-xs text-gray-600">Usually ships within 24 hours</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Additional Product Information */}
+        <div className="mt-16 border-t border-gray-200 pt-12">
+          <div className="grid md:grid-cols-3 gap-8">
+            <div>
+              <h3 className="text-sm font-semibold tracking-wider text-gray-900 mb-3">
+                PRODUCT DETAILS
+              </h3>
+              <dl className="space-y-2">
+                <div>
+                  <dt className="text-xs text-gray-600">Category</dt>
+                  <dd className="text-sm text-gray-900">{product.category}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-gray-600">Base Price</dt>
+                  <dd className="text-sm text-gray-900">KSh {Number(product.price).toFixed(2)}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-gray-600">Available Sizes</dt>
+                  <dd className="text-sm text-gray-900">
+                    {sizes.length > 0 
+                      ? sizes.map(s => `${s.size_grams}g`).join(', ')
+                      : 'Standard'}
+                  </dd>
+                </div>
+              </dl>
+            </div>
+            
+            <div>
+              <h3 className="text-sm font-semibold tracking-wider text-gray-900 mb-3">
+                STORAGE
+              </h3>
+              <p className="text-sm text-gray-700 leading-relaxed">
+                Store in a cool, dry place away from direct sunlight. 
+                Keep sealed to maintain freshness and aroma.
+              </p>
             </div>
 
+            <div>
+              <h3 className="text-sm font-semibold tracking-wider text-gray-900 mb-3">
+                SHIPPING
+              </h3>
+              <p className="text-sm text-gray-700 leading-relaxed">
+                Free shipping on orders over KSh 2000. 
+                Standard delivery within 3-5 business days.
+              </p>
+            </div>
           </div>
         </div>
       </div>
     </div>
   )
 }
-

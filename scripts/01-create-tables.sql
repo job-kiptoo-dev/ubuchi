@@ -1,4 +1,4 @@
--- Create users table (extends Supabase auth.users)
+
 CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
   email TEXT UNIQUE NOT NULL,
@@ -8,19 +8,34 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Create products table
+-- -- Create products table
+-- CREATE TABLE IF NOT EXISTS public.products (
+--   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+--   name TEXT NOT NULL,
+--   description TEXT,
+--   price DECIMAL(10,2) NOT NULL,
+--   category TEXT NOT NULL CHECK (category IN ('hormonal_balance', 'energy', 'sleep', 'wellness')),
+--   image_url TEXT,
+--   stock_quantity INTEGER DEFAULT 0,
+--   is_active BOOLEAN DEFAULT true,
+--   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+--   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+-- );
+
+
 CREATE TABLE IF NOT EXISTS public.products (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   name TEXT NOT NULL,
   description TEXT,
-  price DECIMAL(10,2) NOT NULL,
   category TEXT NOT NULL CHECK (category IN ('hormonal_balance', 'energy', 'sleep', 'wellness')),
   image_url TEXT,
-  stock_quantity INTEGER DEFAULT 0,
+  stock_grams INTEGER DEFAULT 0, -- total grams in stock
+  price_per_gram NUMERIC(10,2), -- optional, if you still want to calculate money
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
 
 -- Create orders table
 CREATE TABLE IF NOT EXISTS public.orders (
@@ -33,23 +48,22 @@ CREATE TABLE IF NOT EXISTS public.orders (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Create order_items table
-CREATE TABLE IF NOT EXISTS public.order_items (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+)CREATE TABLE IF NOT EXISTS public.order_items (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   order_id UUID REFERENCES public.orders(id) ON DELETE CASCADE,
   product_id UUID REFERENCES public.products(id) ON DELETE CASCADE,
-  phoneNumber INTEGER NOT NULL,
-  quantity INTEGER NOT NULL,
-  price DECIMAL(10,2) NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  kg NUMERIC(10,3) NOT NULL,
+  price NUMERIC(10,2) NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
 
 -- Create cart table for persistent shopping cart
 CREATE TABLE IF NOT EXISTS public.cart_items (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
   product_id UUID REFERENCES public.products(id) ON DELETE CASCADE,
-  quantity INTEGER NOT NULL DEFAULT 1,
+  grams_ordered INTEGER NOT NULL DEFAULT 1,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   UNIQUE(user_id, product_id)
@@ -76,10 +90,7 @@ CREATE POLICY "Anyone can view active products" ON public.products
 
 CREATE POLICY "Admins can manage products" ON public.products
   FOR ALL USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE id = auth.uid() AND role = 'admin'
-    )
+    public.is_admin()
   );
 
 -- Orders policies
@@ -91,10 +102,7 @@ CREATE POLICY "Users can create own orders" ON public.orders
 
 CREATE POLICY "Admins can view all orders" ON public.orders
   FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE id = auth.uid() AND role = 'admin'
-    )
+    public.is_admin()
   );
 
 -- Order items policies
@@ -117,6 +125,8 @@ CREATE POLICY "Users can create order items for own orders" ON public.order_item
 -- Cart policies
 CREATE POLICY "Users can manage own cart" ON public.cart_items
   FOR ALL USING (user_id = auth.uid());
+
+-- Use is_admin() where admin-checks need to bypass RLS on profiles
 
 -- Create function to handle user registration
 CREATE OR REPLACE FUNCTION public.handle_new_user()
@@ -181,4 +191,3 @@ CREATE TABLE IF NOT EXISTS checkout_items (
   quantity INT NOT NULL CHECK (quantity > 0),
   price NUMERIC(10,2) NOT NULL
 );
-

@@ -5,6 +5,7 @@ import axios from "axios";
 interface Params {
   mpesa_number: string;
   amount: number;
+    order_id?: string; 
 }
 
 export const sendStkPush = async (body: Params) => {
@@ -14,7 +15,7 @@ export const sendStkPush = async (body: Params) => {
       ? "https://api.safaricom.co.ke"
       : "https://sandbox.safaricom.co.ke";
 
-  const { mpesa_number: phoneNumber, amount } = body;
+  const { mpesa_number: phoneNumber, amount,order_id } = body;
   try {
     //generate authorization token
     const auth: string = Buffer.from(
@@ -62,7 +63,8 @@ export const sendStkPush = async (body: Params) => {
         PhoneNumber: formattedPhone,
         CallBackURL: process.env.MPESA_CALLBACK_URL,
         AccountReference: phoneNumber,
-        TransactionDesc: "anything here",
+        // TransactionDesc: "anything here",
+        TransactionDesc: `Order ${order_id || 'payment'}`,  // Better description
       },
       {
         headers: {

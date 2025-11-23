@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Heart, Moon, Award, Leaf } from "lucide-react";
+import { Heart, Moon, Award, Leaf, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import ProductFilters from "@/components/product-filters";
 import AuthNav from "@/components/auth-nav";
@@ -18,75 +18,118 @@ interface ProductsPageProps {
   searchParams: Promise<SearchParams>;
 }
 
-export default async function ProductsPage({
-  searchParams,
-}: ProductsPageProps) {
-  const resolvedSearchParams = await searchParams;
+export const revalidate = 300;
 
-  let user = null;
-  let isAdmin = false;
-  let products = null;
-  let error = null;
+async function getPageData(category?: string, search?: string) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  console.log('Current user:', user);
+  
+  if (!supabase) {
+    return { user: null, isAdmin: false, products: null, error: "Service unavailable" };
+  }
 
   try {
-    if (!supabase) {
-      throw new Error("Failed to create Supabase client");
-    }
+    const [authResult, productsResult, sizesResult] = await Promise.all([
+      supabase.auth.getUser(),
+      (async () => {
+        let query = supabase
+          .from('products')
+          .select(`
+            id, 
+            name, 
+            description, 
+            price, 
+            category, 
+            image_url, 
+            stock_quantity,
+            is_active
+          `)
+          .eq('is_active', true)
+          .order('created_at', { ascending: false });
+        
+        if (category) {
+          query = query.eq("category", category);
+        }
 
-    const {
-      data: { user: authUser },
-      error: authError,
-    } = await supabase.auth.getUser();
+        if (search) {
+          query = query.ilike("name", `%${search}%`);
+        }
 
-    if (authError) {
-      console.log("Auth error:", authError);
-    } else {
-      user = authUser;
-    }
+        return query;
+      })(),
+      supabase
+        .from('product_sizes')
+        .select('id, product_id, size_grams, price, stock_quantity')
+    ]);
+
+    const user = authResult.data?.user || null;
+    let isAdmin = false;
 
     if (user) {
-      const { data: profile, error: profileError } = await supabase
+      const { data: profile } = await supabase
         .from("profiles")
         .select("role")
         .eq("id", user.id)
         .single();
 
-      if (profileError) {
-        console.log("Profile error:", profileError);
-      } else {
-        isAdmin = profile?.role === "admin";
-      }
+      isAdmin = profile?.role === "admin";
     }
 
-    let query = supabase
-      .from("products")
-      .select("*")
-      .eq("is_active", true)
-      .order("created_at", { ascending: false });
-
-    if (resolvedSearchParams.category) {
-      query = query.eq("category", resolvedSearchParams.category);
+    if (productsResult.error) {
+      console.error("Products error:", productsResult.error);
+      return { user, isAdmin, products: null, error: "Failed to load products" };
     }
 
-    if (resolvedSearchParams.search) {
-      query = query.ilike("name", `%${resolvedSearchParams.search}%`);
-    }
+    return {
+      user,
+      isAdmin,
+      products: productsResult.data,
+      error: null
+    };
 
-    const { data: productsData, error: productsError } = await query;
-
-    if (productsError) {
-      console.log("Products error:", productsError);
-      error = "Failed to load products";
-    } else {
-      products = productsData;
-    }
-  } catch (catchError) {
-    console.log("Error setting up Supabase:", catchError);
-    error = "Service temporarily unavailable";
+  } catch (error) {
+    console.error("Error:", error);
+    return { user: null, isAdmin: false, products: null, error: "Service temporarily unavailable" };
   }
+}
 
-  if (!supabase) {
+export default async function ProductsPage({
+  searchParams,
+}: ProductsPageProps) {
+  const resolvedSearchParams = await searchParams;
+  const { user, isAdmin, products, error } = await getPageData(
+    resolvedSearchParams.category,
+    resolvedSearchParams.search
+  );
+
+  const getCategoryIcon = (category: string) => {
+    switch (category.toLowerCase()) {
+      case "tea":
+        return <Leaf className="h-6 w-6 text-emerald-600" />;
+      case "coffee":
+        return <Award className="h-6 w-6 text-amber-600" />;
+      case "chocolate":
+        return <Heart className="h-6 w-6 text-rose-600" />;
+      default:
+        return <Leaf className="h-6 w-6 text-emerald-600" />;
+    }
+  };
+
+  const getCategoryColor = (category: string) => {
+    switch (category.toLowerCase()) {
+      case "tea":
+        return "bg-emerald-100 text-emerald-800";
+      case "coffee":
+        return "bg-amber-100 text-amber-800";
+      case "chocolate":
+        return "bg-rose-100 text-rose-800";
+      default:
+        return "bg-neutral-100 text-neutral-800";
+    }
+  };
+
+  if (error && !products) {
     return (
       <div className="min-h-screen bg-neutral-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -104,32 +147,6 @@ export default async function ProductsPage({
     );
   }
 
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case "hormonal_balance":
-        return <Heart className="h-6 w-6 text-emerald-600" />;
-      case "energy":
-        return <Award className="h-6 w-6 text-amber-600" />;
-      case "sleep":
-        return <Moon className="h-6 w-6 text-emerald-600" />;
-      default:
-        return <Leaf className="h-6 w-6 text-emerald-600" />;
-    }
-  };
-
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case "hormonal_balance":
-        return "bg-amber-200 text-amber-800";
-      case "energy":
-        return "bg-amber-200 text-amber-800";
-      case "sleep":
-        return "bg-amber-200 text-amber-800";
-      default:
-        return "bg-amber-200 text-amber-800";
-    }
-  };
-
   return (
     <div className="min-h-screen bg-neutral-50">
       <nav className="bg-neutral-50/95 backdrop-blur-sm border-b border-neutral-200 sticky top-0 z-50">
@@ -142,7 +159,6 @@ export default async function ProductsPage({
               </span>
             </Link>
             <div className="hidden md:flex items-center space-x-8">
-
               <Link
                 href="/"
                 className="text-neutral-600 hover:text-neutral-900 transition-colors font-medium"
@@ -164,13 +180,20 @@ export default async function ProductsPage({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-serif text-neutral-900 mb-4">
-            Our Tea Collection
+            Our Collection
           </h1>
           <p className="text-xl text-neutral-600 font-light max-w-2xl mx-auto">
-            Discover wellness teas crafted with African traditions and modern
-            science
+            Premium tea, coffee, and chocolate crafted with care
           </p>
         </div>
+
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900 mb-8"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Home
+        </Link>
 
         <div className="mb-8">
           <div className="flex flex-col lg:flex-row gap-8">
@@ -186,10 +209,10 @@ export default async function ProductsPage({
               <div className="flex justify-between items-center mb-8">
                 <h2 className="text-2xl font-serif text-neutral-900">
                   {resolvedSearchParams.category
-                    ? `${resolvedSearchParams.category.replace("_", " ").replace(/\b\w/g, (l) => l.toUpperCase())} Teas`
+                    ? `${resolvedSearchParams.category.charAt(0).toUpperCase() + resolvedSearchParams.category.slice(1)} Products`
                     : resolvedSearchParams.search
                       ? `Search Results for "${resolvedSearchParams.search}"`
-                      : "All Teas"}
+                      : "All Products"}
                 </h2>
                 <p className="text-neutral-600 font-light">
                   {products?.length || 0} products
@@ -217,35 +240,59 @@ export default async function ProductsPage({
                 </div>
               )}
 
-              <Suspense fallback={<div>Loading products...</div>}>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {products && products.length > 0 ? (
-                    products.map((product) => (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {products && products.length > 0 ? (
+                  products.map((product: any, index: number) => {
+                    // Get the smallest size price or fallback to base price
+                    const sizes = product.product_sizes || [];
+                    const smallestSize = sizes.length > 0 
+                      ? sizes.reduce((min: any, size: any) => 
+                          size.price < min.price ? size : min, sizes[0])
+                      : null;
+                    
+                    const displayPrice = smallestSize ? smallestSize.price : product.price;
+                    const displaySize = smallestSize ? `${smallestSize.size_grams}g` : 'base size';
+                    
+                    // Calculate total stock across all sizes
+                    const totalStock = sizes.reduce((sum: number, size: any) => 
+                      sum + (size.stock_quantity || 0), 0) || product.stock_quantity;
+                    
+                    const lowStockThreshold = 100;
+                    const isLowStock = totalStock > 0 && totalStock <= lowStockThreshold;
+                    const isOutOfStock = totalStock === 0;
+                    
+                    return (
                       <Card
                         key={product.id}
-                        className="bg-neutral-50 shadow-lg border border-neutral-200 hover:shadow-xl transition-shadow overflow-hidden"
+                        className="bg-white rounded-lg border border-neutral-200 hover:shadow-lg transition-shadow overflow-hidden"
                       >
-                        <div className="aspect-square bg-amber-200 flex items-center justify-center relative">
-                          {product.image_url ? (
+                        <div className="aspect-square bg-gradient-to-br from-amber-50 to-emerald-50 flex items-center justify-center relative">
+                          {product.image_url && product.image_url !== 'https://example.com/tea.jpg' && 
+                           product.image_url !== 'https://example.com/coffee.jpg' && 
+                           product.image_url !== 'https://example.com/chocolate.jpg' ? (
                             <Image
-                              src={product.image_url || "/placeholder.svg"}
+                              src={product.image_url}
                               alt={product.name}
                               width={400}
                               height={400}
                               className="w-full h-full object-cover"
+                              priority={index < 3}
+                              loading={index < 3 ? "eager" : "lazy"}
                             />
                           ) : (
-                            <div className="text-emerald-600">
+                            <div className="text-center">
                               {getCategoryIcon(product.category)}
+                              <p className="mt-2 text-neutral-400 text-sm">
+                                {product.category}
+                              </p>
                             </div>
                           )}
-                          {product.stock_quantity <= 5 &&
-                            product.stock_quantity > 0 && (
-                              <Badge className="absolute top-2 right-2 bg-amber-200 text-amber-800">
-                                Low Stock
-                              </Badge>
-                            )}
-                          {product.stock_quantity === 0 && (
+                          {isLowStock && (
+                            <Badge className="absolute top-2 right-2 bg-amber-200 text-amber-800">
+                              Low Stock
+                            </Badge>
+                          )}
+                          {isOutOfStock && (
                             <Badge className="absolute top-2 right-2 bg-red-100 text-red-700">
                               Out of Stock
                             </Badge>
@@ -255,42 +302,47 @@ export default async function ProductsPage({
                           <Badge
                             className={`mb-3 ${getCategoryColor(product.category)}`}
                           >
-                            {product.category.replace("_", " ")}
+                            {product.category}
                           </Badge>
                           <h3 className="text-xl font-serif text-neutral-900 mb-2">
                             {product.name}
                           </h3>
-                          <p className="text-neutral-600 font-light mb-4 line-clamp-3">
+                          <p className="text-neutral-600 font-light mb-4 line-clamp-2">
                             {product.description}
                           </p>
                           <div className="flex items-center justify-between">
-                            <span className="text-2xl font-serif text-neutral-900">
-                              ${Number.parseFloat(product.price).toFixed(2)}
-                            </span>
+                            <div className="flex flex-col">
+                              <span className="text-2xl font-serif text-neutral-900">
+                                KSh {displayPrice.toFixed(2)}
+                              </span>
+                              <span className="text-xs text-neutral-500">
+                                from {displaySize}
+                              </span>
+                            </div>
                             <Link href={`/products/${product.id}`}>
-                              <Button className="bg-emerald-600 hover:bg-emerald-700 font-medium transition-transform hover:scale-105">
+                              <Button className="bg-emerald-600 rounded-md hover:bg-emerald-700 font-medium transition-colors">
                                 View Details
                               </Button>
                             </Link>
                           </div>
                         </CardContent>
                       </Card>
-                    ))
-                  ) : !error ? (
-                    <div className="col-span-full text-center py-12">
-                      <Leaf className="h-16 w-16 text-emerald-600 mx-auto mb-4" />
-                      <h3 className="text-xl font-serif text-neutral-900 mb-2">
-                        No products found
-                      </h3>
-                      <p className="text-neutral-600 font-light">
-                        {resolvedSearchParams.search
-                          ? `No products match "${resolvedSearchParams.search}". Try a different search term.`
-                          : "Try adjusting your search or filter criteria"}
-                      </p>
-                    </div>
-                  ) : null}
-                </div>
-              </Suspense>
+                    );
+                  })
+                ) : !error ? (
+                  <div className="col-span-full text-center py-12">
+                    <Leaf className="h-16 w-16 text-emerald-600 mx-auto mb-4" />
+                    <h3 className="text-xl font-serif text-neutral-900 mb-2">
+                      No products found
+                    </h3>
+                    <p className="text-neutral-600 font-light">
+                      {resolvedSearchParams.search
+                        ? `No products match "${resolvedSearchParams.search}". Try a different search term.`
+                        : "Try adjusting your search or filter criteria"}
+                    </p>
+                  </div>
+                ) : null}
+              </div>
             </div>
           </div>
         </div>
@@ -298,65 +350,51 @@ export default async function ProductsPage({
         {!error &&
           !resolvedSearchParams.search &&
           !resolvedSearchParams.category && (
-            <div className="mt-16 bg-neutral-50 rounded-2xl shadow-lg border border-neutral-200 p-8">
+            <div className="mt-16 bg-white rounded-2xl shadow-lg border border-neutral-200 p-8">
               <h2 className="text-2xl font-serif text-neutral-900 text-center mb-8">
-                Shop by Wellness Goal
+                Shop by Category
               </h2>
-              <div className="grid md:grid-cols-4 gap-6">
+              <div className="grid md:grid-cols-3 gap-6">
                 <Link
-                  href="/products?category=hormonal_balance"
+                  href="/products?category=Tea"
                   className="text-center group"
                 >
-                  <div className="w-16 h-16 bg-amber-200 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-amber-300 transition-colors">
-                    <Heart className="h-8 w-8 text-emerald-600" />
-                  </div>
-                  <h3 className="font-serif text-neutral-900 mb-2">
-                    Hormonal Balance
-                  </h3>
-                  <p className="text-sm text-neutral-600 font-light">
-                    Support your natural rhythm
-                  </p>
-                </Link>
-                <Link
-                  href="/products?category=energy"
-                  className="text-center group"
-                >
-                  <div className="w-16 h-16 bg-amber-200 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-amber-300 transition-colors">
-                    <Award className="h-8 w-8 text-amber-600" />
-                  </div>
-                  <h3 className="font-serif text-neutral-900 mb-2">
-                    Energy Boost
-                  </h3>
-                  <p className="text-sm text-neutral-600 font-light">
-                    Natural vitality enhancement
-                  </p>
-                </Link>
-                <Link
-                  href="/products?category=sleep"
-                  className="text-center group"
-                >
-                  <div className="w-16 h-16 bg-amber-200 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-amber-300 transition-colors">
-                    <Moon className="h-8 w-8 text-emerald-600" />
-                  </div>
-                  <h3 className="font-serif text-neutral-900 mb-2">
-                    Sleep Support
-                  </h3>
-                  <p className="text-sm text-neutral-600 font-light">
-                    Restful evening rituals
-                  </p>
-                </Link>
-                <Link
-                  href="/products?category=wellness"
-                  className="text-center group"
-                >
-                  <div className="w-16 h-16 bg-amber-200 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-amber-300 transition-colors">
+                  <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-emerald-200 transition-colors">
                     <Leaf className="h-8 w-8 text-emerald-600" />
                   </div>
                   <h3 className="font-serif text-neutral-900 mb-2">
-                    General Wellness
+                    Premium Tea
                   </h3>
                   <p className="text-sm text-neutral-600 font-light">
-                    Overall health support
+                    Organic Kenyan tea leaves
+                  </p>
+                </Link>
+                <Link
+                  href="/products?category=Coffee"
+                  className="text-center group"
+                >
+                  <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-amber-200 transition-colors">
+                    <Award className="h-8 w-8 text-amber-600" />
+                  </div>
+                  <h3 className="font-serif text-neutral-900 mb-2">
+                    Fresh Coffee
+                  </h3>
+                  <p className="text-sm text-neutral-600 font-light">
+                    Medium-roast coffee beans
+                  </p>
+                </Link>
+                <Link
+                  href="/products?category=Chocolate"
+                  className="text-center group"
+                >
+                  <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-rose-200 transition-colors">
+                    <Heart className="h-8 w-8 text-rose-600" />
+                  </div>
+                  <h3 className="font-serif text-neutral-900 mb-2">
+                    Hot Chocolate
+                  </h3>
+                  <p className="text-sm text-neutral-600 font-light">
+                    Rich cocoa mix
                   </p>
                 </Link>
               </div>

@@ -1,112 +1,33 @@
-// "use client"
-//
-// import { useState } from "react"
-// import { Button } from "@/components/ui/button"
-// import { ShoppingCart, Check } from "lucide-react"
-// // import { useToast } from "@/hooks/use-toast"
-// import { toast } from "sonner"
-//
-// interface AddToCartButtonProps {
-//   product: {
-//     id: string
-//     name: string
-//     price: number
-//   }
-// }
-//
-// export default function AddToCartButton({ product }: AddToCartButtonProps) {
-//   const [quantity, setQuantity] = useState(1)
-//   const [isAdding, setIsAdding] = useState(false)
-//   const [isAdded, setIsAdded] = useState(false)
-//   // const { toast } = useToast()
-//
-//   const handleAddToCart = async () => {
-//     setIsAdding(true)
-//     try {
-//       // Simulate adding to cart (replace with actual API call)
-//       await new Promise((resolve) => setTimeout(resolve, 500))
-//
-//       setIsAdded(true)
-//       toast({
-//         title: "Added to cart",
-//         description: `${quantity}x ${product.name} added to your cart`,
-//       })
-//
-//       setTimeout(() => setIsAdded(false), 2000)
-//     } catch (error) {
-//       toast({
-//         title: "Error",
-//         description: "Failed to add item to cart",
-//         variant: "destructive",
-//       })
-//     } finally {
-//       setIsAdding(false)
-//     }
-//   }
-//
-//   return (
-//     <div className="space-y-4">
-//       <div className="flex items-center gap-4">
-//         <div className="flex items-center border border-gray-300">
-//           <button
-//             onClick={() => setQuantity(Math.max(1, quantity - 1))}
-//             className="px-4 py-3 text-gray-600 hover:text-gray-900"
-//           >
-//             −
-//           </button>
-//           <input
-//             type="number"
-//             value={quantity}
-//             onChange={(e) => setQuantity(Math.max(1, Number.parseInt(e.target.value) || 1))}
-//             className="w-12 text-center border-l border-r border-gray-300 text-sm"
-//           />
-//           <button onClick={() => setQuantity(quantity + 1)} className="px-4 py-3 text-gray-600 hover:text-gray-900">
-//             +
-//           </button>
-//         </div>
-//       </div>
-//       <Button
-//         onClick={handleAddToCart}
-//         disabled={isAdding || isAdded}
-//         className="w-full bg-gray-900 hover:bg-black text-white py-6 text-base rounded-none font-medium tracking-wide"
-//       >
-//         {isAdded ? (
-//           <>
-//             <Check className="h-5 w-5 mr-2" />
-//             ADDED TO CART
-//           </>
-//         ) : (
-//           <>
-//             <ShoppingCart className="h-5 w-5 mr-2" />
-//             ADD TO CART
-//           </>
-//         )}
-//       </Button>
-//     </div>
-//   )
-// }
-//
-//
-//
-
 "use client"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { ShoppingCart,Check, Plus, Minus, Loader2 } from "lucide-react"
+import { ShoppingCart, Plus, Minus, Loader2 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 
 interface AddToCartButtonProps {
   product: any
+  sizes?: any[]
 }
 
-export default function AddToCartButton({ product }: AddToCartButtonProps) {
+export default function AddToCartButton({ product, sizes = [] }: AddToCartButtonProps) {
   const [quantity, setQuantity] = useState(1)
   const [loading, setLoading] = useState(false)
+  const [selectedSizeId, setSelectedSizeId] = useState<string | null>(
+    sizes.length > 0 ? sizes[0].id : null
+  )
 
   const router = useRouter()
+
+  // Get selected size details
+  const selectedSize = sizes.find(s => s.id === selectedSizeId)
+  const maxStock = selectedSize ? selectedSize.stock_quantity : product.stock_quantity
+  const isOutOfStock = maxStock === 0
+  
+  // Calculate price based on selected size or product base price
+  const currentPrice = selectedSize ? selectedSize.price : product.price
+  const selectedGrams = selectedSize ? selectedSize.size_grams : 50
 
   const handleAddToCart = async () => {
     setLoading(true)
@@ -121,19 +42,23 @@ export default function AddToCartButton({ product }: AddToCartButtonProps) {
         return
       }
 
-      // Check if item already exists in cart
+      // Check if item with same product and size already exists in cart
       const { data: existingItem } = await supabase
         .from("cart_items")
         .select("*")
         .eq("user_id", user.id)
         .eq("product_id", product.id)
+        .eq("size_id", selectedSizeId)
         .single()
 
       if (existingItem) {
-        // Update quantity
+        // Update grams_ordered (multiply quantity by grams per package)
         const { error } = await supabase
           .from("cart_items")
-          .update({ quantity: existingItem.quantity + quantity })
+          .update({ 
+            grams_ordered: existingItem.grams_ordered + (selectedGrams * quantity),
+            updated_at: new Date().toISOString()
+          })
           .eq("id", existingItem.id)
 
         if (error) throw error
@@ -143,15 +68,19 @@ export default function AddToCartButton({ product }: AddToCartButtonProps) {
           {
             user_id: user.id,
             product_id: product.id,
-            quantity: quantity,
+            size_id: selectedSizeId,
+            grams_ordered: selectedGrams * quantity,
           },
         ])
 
         if (error) throw error
       }
 
-      // Show success message or redirect to cart
-      toast.success(`Added ${quantity} × ${product.name} to cart`)
+      const sizeText = selectedSize ? ` (${selectedSize.size_grams}g)` : ''
+      toast.success(`Added ${quantity} × ${product.name}${sizeText} to cart`)
+      
+      // Reset quantity after adding
+      setQuantity(1)
     } catch (error) {
       console.error("Error adding to cart:", error)
       toast.error("Could not add item to cart. Please try again.")
@@ -160,7 +89,7 @@ export default function AddToCartButton({ product }: AddToCartButtonProps) {
     }
   }
 
-  if (product.stock_quantity === 0) {
+  if (isOutOfStock) {
     return (
       <Button disabled className="w-full bg-gray-300 text-gray-500 cursor-not-allowed py-6 text-lg">
         Out of Stock
@@ -170,6 +99,66 @@ export default function AddToCartButton({ product }: AddToCartButtonProps) {
 
   return (
     <div className="space-y-4">
+      {/* Size Selection */}
+      {sizes.length > 0 && (
+        <div>
+          <h3 className="text-sm font-semibold tracking-wider text-gray-900 mb-3">
+            SELECT SIZE
+          </h3>
+          <div className="grid grid-cols-2 gap-3">
+            {sizes.map((size) => {
+              const isSelected = selectedSizeId === size.id
+              const isSizeOutOfStock = size.stock_quantity === 0
+              
+              return (
+                <button
+                  key={size.id}
+                  onClick={() => !isSizeOutOfStock && setSelectedSizeId(size.id)}
+                  disabled={isSizeOutOfStock}
+                  className={`p-4 border rounded-md transition-all text-left ${
+                    isSizeOutOfStock
+                      ? 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-50'
+                      : isSelected
+                      ? 'border-emerald-600 bg-emerald-50 shadow-sm ring-2 ring-emerald-200'
+                      : 'border-gray-300 hover:border-emerald-400'
+                  }`}
+                >
+                  <div className="flex flex-col">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className={`text-sm font-medium ${
+                        isSelected ? 'text-emerald-700' : 'text-gray-900'
+                      }`}>
+                        {size.size_grams}g
+                      </span>
+                      {isSelected && (
+                        <div className="w-2 h-2 rounded-full bg-emerald-600"></div>
+                      )}
+                    </div>
+                    <span className={`text-lg font-serif mt-1 ${
+                      isSelected ? 'text-emerald-900' : 'text-gray-900'
+                    }`}>
+                      KSh {Number(size.price).toFixed(2)}
+                    </span>
+                    <span className={`text-xs mt-1 ${
+                      isSizeOutOfStock 
+                        ? 'text-red-600 font-medium' 
+                        : isSelected 
+                        ? 'text-emerald-600' 
+                        : 'text-gray-500'
+                    }`}>
+                      {isSizeOutOfStock 
+                        ? 'Out of stock' 
+                        : `${size.stock_quantity} available`}
+                    </span>
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Quantity Selector */}
       <div className="flex items-center gap-4">
         <span className="text-emerald-800 font-medium">Quantity:</span>
         <div className="flex items-center gap-2">
@@ -185,7 +174,7 @@ export default function AddToCartButton({ product }: AddToCartButtonProps) {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setQuantity(Math.min(product.stock_quantity, quantity + 1))}
+            onClick={() => setQuantity(Math.min(maxStock, quantity + 1))}
             className="border-emerald-200 text-emerald-700"
           >
             <Plus className="h-4 w-4" />
@@ -193,43 +182,24 @@ export default function AddToCartButton({ product }: AddToCartButtonProps) {
         </div>
       </div>
 
-      {/* <Button */}
-      {/*   onClick={handleAddToCart} */}
-      {/*   disabled={loading} */}
-      {/*   className="w-full bg-emerald-600 hover:bg-emerald-700 py-6 text-lg" */}
-      {/* > */}
-      {/*   {loading ? ( */}
-      {/*     <> */}
-      {/*       <Loader2 className="h-5 w-5 mr-2 animate-spin" /> */}
-      {/*       Adding to Cart... */}
-      {/*     </> */}
-      {/*   ) : ( */}
-      {/*     <> */}
-      {/*       <ShoppingCart className="h-5 w-5 mr-2" /> */}
-      {/*       Add to Cart - ${(Number.parseFloat(product.price) * quantity).toFixed(2)} */}
-      {/*     </> */}
-      {/*   )} */}
-      {/* </Button> */}
+      {/* Add to Cart Button */}
       <Button
         onClick={handleAddToCart}
         disabled={loading}
-        className="w-full bg-emerald-600  hover:bg-black text-white py-6 text-base rounded-none font-medium tracking-wide"
+        className="w-full bg-emerald-600 hover:bg-emerald-700 py-6 text-lg rounded-md"
       >
         {loading ? (
           <>
             <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-            ADDED TO CART
+            Adding to Cart...
           </>
         ) : (
           <>
             <ShoppingCart className="h-5 w-5 mr-2" />
-            Add to Cart - ${(Number.parseFloat(product.price) * quantity).toFixed(2)}
-           </>
-         )}
-       </Button>
-
-
+            Add to Cart - KSh {(Number(currentPrice) * quantity).toFixed(2)}
+          </>
+        )}
+      </Button>
     </div>
   )
 }
-

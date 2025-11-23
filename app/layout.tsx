@@ -5,8 +5,6 @@ import "./globals.css"
 import { Toaster } from "@/components/ui/sonner"
 import NavBar from "@/components/navBar"
 import { createClient } from "@/lib/supabase/server"
-import { argv0 } from "process"
-import { count } from "console"
 
 const inter = Inter({
   subsets: ["latin"],
