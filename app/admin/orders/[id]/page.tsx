@@ -14,17 +14,14 @@ import {
   Heart,
 } from "lucide-react";
 import Link from "next/link";
-import AuthNav from "@/components/auth-nav";
 import Image from "next/image";
 
 interface PageProps {
   params: Promise<{ id: string }>;
-  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-export default async function OrderPage({ params, searchParams }: PageProps) {
+export default async function AdminOrderDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const searchParamsResolved = await searchParams;
 
   const supabase = await createClient();
   const {
@@ -35,22 +32,23 @@ export default async function OrderPage({ params, searchParams }: PageProps) {
     redirect("/auth/login");
   }
 
-  let isAdmin = false;
+  // Check if user is admin
   const { data: profile } = await supabase
     .from("profiles")
     .select("role")
     .eq("id", user.id)
     .single();
 
-  isAdmin = profile?.role === "admin";
+  if (!profile || profile.role !== "admin") {
+    redirect("/");
+  }
 
-  // Fetch order, order_items, products, and sizes separately
-  const [orderResult, orderItemsResult, productsResult, sizesResult] = await Promise.all([
+  // Fetch order, order_items, products, sizes, and customer profile
+  const [orderResult, orderItemsResult, productsResult, sizesResult, profilesResult] = await Promise.all([
     supabase
       .from("orders")
       .select("*")
       .eq("id", id)
-      .eq("user_id", user.id)
       .single(),
     supabase
       .from("order_items")
@@ -61,7 +59,10 @@ export default async function OrderPage({ params, searchParams }: PageProps) {
       .select("id, name, description, price, category, image_url"),
     supabase
       .from("product_sizes")
-      .select("id, size_grams, price")
+      .select("id, size_grams, price"),
+    supabase
+      .from("profiles")
+      .select("id, email, full_name")
   ]);
 
   const order = orderResult.data;
@@ -77,6 +78,11 @@ export default async function OrderPage({ params, searchParams }: PageProps) {
   const sizesMap = new Map(
     sizesResult.data?.map(s => [s.id, s]) || []
   );
+  const profilesMap = new Map(
+    profilesResult.data?.map(p => [p.id, p]) || []
+  );
+
+  const customerProfile = profilesMap.get(order.user_id);
 
   // Merge order items with products and sizes
   const orderItems = orderItemsResult.data?.map(item => ({
@@ -151,51 +157,37 @@ export default async function OrderPage({ params, searchParams }: PageProps) {
             <Link href="/" className="flex items-center space-x-2">
               <Leaf className="h-8 w-8 text-emerald-600" />
               <span className="text-2xl font-serif text-emerald-800">
-                Úbūchi
+                Úbūchi Admin
               </span>
             </Link>
-            <div className="hidden md:flex items-center space-x-8">
+            <div className="flex items-center space-x-4">
+              <Link
+                href="/admin/products"
+                className="text-amber-700 hover:text-emerald-800 transition-colors"
+              >
+                Products
+              </Link>
+              <Link
+                href="/admin/orders"
+                className="text-emerald-800 font-medium"
+              >
+                Orders
+              </Link>
               <Link
                 href="/"
                 className="text-amber-700 hover:text-emerald-800 transition-colors"
               >
-                Home
+                Store
               </Link>
-              <Link
-                href="/products"
-                className="text-amber-700 hover:text-emerald-800 transition-colors"
-              >
-                Shop
-              </Link>
-              <AuthNav user={user} isAdmin={isAdmin} />
             </div>
           </div>
         </div>
       </nav>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Success Message */}
-        {searchParamsResolved?.success && (
-          <Card className="bg-emerald-50 border-emerald-200 mb-8">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <CheckCircle className="h-6 w-6 text-emerald-600" />
-                <div>
-                  <h3 className="font-semibold text-emerald-800">
-                    Order Placed Successfully!
-                  </h3>
-                  <p className="text-emerald-700">
-                    Thank you for your order. We'll send you updates as it progresses.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
         {/* Back Button */}
         <Link
-          href="/orders"
+          href="/admin/orders"
           className="inline-flex items-center text-emerald-700 hover:text-emerald-800 mb-8"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -218,7 +210,9 @@ export default async function OrderPage({ params, searchParams }: PageProps) {
                       {new Date(order.created_at).toLocaleDateString("en-US", {
                         year: "numeric",
                         month: "long",
-                        day: "numeric"
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit"
                       })}
                     </p>
                   </div>
@@ -237,6 +231,31 @@ export default async function OrderPage({ params, searchParams }: PageProps) {
                   </div>
                 </div>
               </CardHeader>
+            </Card>
+
+            {/* Customer Info */}
+            <Card className="bg-white shadow-sm border border-gray-200">
+              <CardHeader>
+                <CardTitle className="text-gray-900 font-serif">Customer Information</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 text-gray-700">
+                  <p>
+                    <span className="font-medium">Name:</span>{" "}
+                    {customerProfile?.full_name || "N/A"}
+                  </p>
+                  <p>
+                    <span className="font-medium">Email:</span>{" "}
+                    {customerProfile?.email || "N/A"}
+                  </p>
+                  {order.shipping_address?.phoneNumber && (
+                    <p>
+                      <span className="font-medium">Phone:</span>{" "}
+                      {order.shipping_address.phoneNumber}
+                    </p>
+                  )}
+                </div>
+              </CardContent>
             </Card>
 
             {/* Order Items */}
@@ -279,9 +298,6 @@ export default async function OrderPage({ params, searchParams }: PageProps) {
                         <h4 className="font-medium text-gray-900 mb-1">
                           {item.products?.name}
                         </h4>
-                        <p className="text-sm text-gray-600 line-clamp-2 mb-2">
-                          {item.products?.description}
-                        </p>
                         <div className="flex items-center gap-4 text-sm text-gray-600">
                           <span>Size: {sizeGrams}g</span>
                           <span>Qty: {item.quantity}</span>
@@ -323,16 +339,13 @@ export default async function OrderPage({ params, searchParams }: PageProps) {
                       {order.shipping_address.zipCode}
                     </p>
                     <p>{order.shipping_address.country}</p>
-                    <p className="text-sm text-gray-600 pt-2">
-                      Phone: {order.shipping_address.phoneNumber}
-                    </p>
                   </div>
                 </CardContent>
               </Card>
             )}
           </div>
 
-          {/* Order Summary */}
+          {/* Order Summary & Actions */}
           <div className="lg:col-span-1">
             <Card className="bg-white shadow-sm border border-gray-200 sticky top-24">
               <CardHeader>
@@ -358,58 +371,13 @@ export default async function OrderPage({ params, searchParams }: PageProps) {
                   </div>
                 </div>
 
-                {/* Order Status Timeline */}
-                <div className="bg-emerald-50 rounded-lg p-4 mt-6">
-                  <h4 className="font-semibold text-emerald-800 mb-3">
-                    Order Status
-                  </h4>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3 text-emerald-700">
-                      <Clock className="h-4 w-4" />
-                      <span className="text-sm">Order Placed</span>
-                    </div>
-                    <div
-                      className={`flex items-center gap-3 ${
-                        order.status === "paid" || order.status === "shipped" || order.status === "delivered" 
-                          ? "text-emerald-700" 
-                          : "text-gray-400"
-                      }`}
-                    >
-                      <Package className="h-4 w-4" />
-                      <span className="text-sm">Payment Confirmed</span>
-                    </div>
-                    <div
-                      className={`flex items-center gap-3 ${
-                        order.status === "shipped" || order.status === "delivered" 
-                          ? "text-emerald-700" 
-                          : "text-gray-400"
-                      }`}
-                    >
-                      <Truck className="h-4 w-4" />
-                      <span className="text-sm">Shipped</span>
-                    </div>
-                    <div
-                      className={`flex items-center gap-3 ${
-                        order.status === "delivered" 
-                          ? "text-emerald-700" 
-                          : "text-gray-400"
-                      }`}
-                    >
-                      <CheckCircle className="h-4 w-4" />
-                      <span className="text-sm">Delivered</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="space-y-2 pt-4">
-                  <Link href="/products">
-                    <Button
-                      className="w-full bg-emerald-600 hover:bg-emerald-700"
-                    >
-                      Continue Shopping
-                    </Button>
-                  </Link>
+                {/* Admin Actions */}
+                <div className="space-y-2 pt-4 border-t border-gray-200">
+                  <h4 className="font-semibold text-gray-900 mb-3">Update Status</h4>
+                  {/* You can add status update buttons here */}
+                  <p className="text-sm text-gray-600">
+                    Current status: <span className="font-medium">{order.status}</span>
+                  </p>
                 </div>
               </CardContent>
             </Card>
