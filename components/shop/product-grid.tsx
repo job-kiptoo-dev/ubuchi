@@ -83,11 +83,19 @@ export default function ProductGrid({ products }: ProductGridProps) {
             <p className="text-gray-600 text-sm mb-4 line-clamp-2">{product.description}</p>
             <div className="flex justify-between items-center">
               <span className="text-2xl font-bold text-gray-900">${product.price}</span>
-              <AddToCartButton
+              {/* <AddToCartButton
                 productId={product.id}
                 disabled={product.stock_quantity === 0}
                 inStock={product.stock_quantity > 0}
-              />
+              /> */}
+              <AddToCartButton product={product}/>
+
+              {/* <AddToCartButtonVj
+  product={product}
+  disabled={product.stock_quantity === 0}
+  inStock={product.stock_quantity > 0}
+/> */}
+
             </div>
           </CardContent>
         </Card>
