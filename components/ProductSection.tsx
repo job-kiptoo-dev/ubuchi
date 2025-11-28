@@ -181,9 +181,11 @@ export default function ProductSection() {
         </div>
 
         <div className="text-center">
-          <Button asChild className="bg-emerald-600 text-white hover:bg-emerald-700 rounded-md px-7 py-4">
-            <Link href="/products">View All Products</Link>
+          <Link href="/products">
+          <Button asChild className="bg-emerald-600 text-white hover:bg-emerald-800 rounded-md px-7 py-4">
+           View All Products
           </Button>
+          </Link>
         </div>
       </div>
     </section>
