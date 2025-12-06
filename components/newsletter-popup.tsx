@@ -78,7 +78,7 @@ export default function NewsletterPopup() {
                     type="button"
                     onClick={() => setIsOpen(false)}
                     variant="outline"
-                    className="flex-1 border-white/30 text-white hover:bg-white/10"
+                    className="flex-1 border-white/30  hover:bg-white/10"
                   >
                     Maybe Later
                   </Button>

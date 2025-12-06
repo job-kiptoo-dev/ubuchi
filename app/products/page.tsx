@@ -23,7 +23,6 @@ export const revalidate = 300;
 async function getPageData(category?: string, search?: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  console.log('Current user:', user);
   
   if (!supabase) {
     return { user: null, isAdmin: false, products: null, error: "Service unavailable" };
