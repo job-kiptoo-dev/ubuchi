@@ -226,14 +226,14 @@ export default function ProductForm({ product, isEdit = false }: ProductFormProp
           </div>
 
           <div>
-            {/* <Label>Image URL</Label>
-            <Input
-              type="url"
-              value={formData.image_url}
-              onChange={(e) => handleInputChange("image_url", e.target.value)}
-              placeholder="https://example.com/image.jpg"
-            /> */}
-            <ImageUpload/>
+            <Label>Upload a product lable</Label>
+            {/* // <Input
+            //   type="url"
+            //   value={formData.image_url}
+            //   onChange={(e) => handleInputChange("image_url", e.target.value)}
+            //   placeholder="https://example.com/image.jpg"
+            // /> */}
+             <ImageUpload/>
           </div>
 
           {/* NEW: Product sizes section */}
