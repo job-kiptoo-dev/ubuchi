@@ -2,6 +2,7 @@ import { Leaf } from "lucide-react";
 import Link from "next/link";
 import AuthNav from "./auth-nav";
 import { createClient } from "@/lib/supabase/server";
+import { navLinks } from "@/lib/Links/navLinks";
 
 
 export default async function NavBar() {
@@ -25,33 +26,42 @@ export default async function NavBar() {
   }
 
   return (
-    <nav className="bg-white/95 backdrop-blur-sm border-b border-emerald-100 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <Link href="/" className="flex items-center space-x-2">
-            <Leaf className="h-8 w-8 text-emerald-600" />
-            <span className="text-2xl font-bold text-emerald-800">
-              Ūbūchi
-            </span>
-          </Link>
-          <div className="hidden md:flex items-center space-x-8">
+      <nav className="fixed top-0 w-full bg-neutral-50/70 backdrop-blur-sm border-b border-neutral-200 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            {/* Logo */}
             <Link
               href="/"
-              className="text-amber-700 hover:text-emerald-800 transition-colors"
+              className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
             >
-              Home
+              <Leaf className="h-8 w-8 text-emerald-600" aria-hidden="true" />
+              <span className="text-2xl font-serif text-neutral-900">
+                Úbūchi
+              </span>
             </Link>
-            <Link
-              href="/products"
-              className="text-amber-700 hover:text-emerald-800 transition-colors"
-            >
-              Shop
-            </Link>
-            <AuthNav user={user} isAdmin={isAdmin} />
+
+            {/* Nav Links */}
+            <div className="hidden md:flex items-center space-x-8">
+              {navLinks.map(({ href, label }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className="text-neutral-600 hover:text-neutral-900 transition-colors font-medium"
+                >
+                  {label}
+                </Link>
+              ))}
+
+              {/* Auth Nav */}
+              <AuthNav user={user} isAdmin={isAdmin} />
+            </div>
           </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+
+
+
+
 
   )
 }

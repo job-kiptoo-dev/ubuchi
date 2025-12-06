@@ -78,37 +78,6 @@ export default async function CartPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50">
-      {/* Navigation */}
-      <nav className="bg-white/95 backdrop-blur-sm border-b border-emerald-100 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="flex items-center space-x-2">
-              <Leaf className="h-8 w-8 text-emerald-600" />
-              <span className="text-2xl font-serif text-emerald-800">
-                Úbūchi
-              </span>
-            </Link>
-
-            <div className="hidden md:flex items-center space-x-8">
-              <Link
-                href="/"
-                className="text-amber-700 hover:text-emerald-800 transition-colors"
-              >
-                Home
-              </Link>
-              <Link
-                href="/products"
-                className="text-amber-700 hover:text-emerald-800 transition-colors"
-              >
-                Shop
-              </Link>
-              <AuthNav user={user} isAdmin={isAdmin} />
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Page Content */}
       <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-amber-50 py-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           {/* Header */}

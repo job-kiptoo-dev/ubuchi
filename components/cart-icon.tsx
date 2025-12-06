@@ -7,34 +7,30 @@ import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 
-interface CartIconProps {
-  userId?: string
-}
-
-export default function CartIcon({ userId }: CartIconProps) {
+export default function CartIcon({ userId }: { userId?: string }) {
   const [itemCount, setItemCount] = useState(0)
-  const supabase = createClient()
 
   useEffect(() => {
     if (!userId) return
 
+    const supabase = createClient()
+
     const fetchCartCount = async () => {
-      try {
-        const { data } = await supabase.from("cart_items").select("quantity").eq("user_id", userId)
+      const { count, error } = await supabase
+        .from("cart_items")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", userId)
 
-
-        const total = data?.reduce((sum, item) => sum + item.quantity, 0) || 0
-        setItemCount(total)
-      } catch (error) {
-        console.error("Error fetching cart count:", error)
+      if (!error) {
+        setItemCount(count || 0)
       }
     }
 
     fetchCartCount()
 
-    // Subscribe to cart changes
+    // REALTIME updates
     const channel = supabase
-      .channel("cart_changes")
+      .channel("cart_items_changes")
       .on(
         "postgres_changes",
         {
@@ -43,23 +39,19 @@ export default function CartIcon({ userId }: CartIconProps) {
           table: "cart_items",
           filter: `user_id=eq.${userId}`,
         },
-        () => {
-          fetchCartCount()
-        },
+        () => fetchCartCount()
       )
       .subscribe()
 
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  }, [userId,supabase])
+    return () => supabase.removeChannel(channel)
+  }, [userId])
 
   return (
     <Link href="/cart">
       <Button
         variant="ghost"
         size="icon"
-        className="text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50 relative"
+        className="relative text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50"
       >
         <ShoppingCart className="h-5 w-5" />
         {itemCount > 0 && (
