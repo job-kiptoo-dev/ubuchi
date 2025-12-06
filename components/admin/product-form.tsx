@@ -17,6 +17,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Loader2, ArrowLeft, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
+import ImageUpload from "./handle-upload";
 
 interface ProductFormProps {
   product?: any;
@@ -225,13 +226,14 @@ export default function ProductForm({ product, isEdit = false }: ProductFormProp
           </div>
 
           <div>
-            <Label>Image URL</Label>
+            {/* <Label>Image URL</Label>
             <Input
               type="url"
               value={formData.image_url}
               onChange={(e) => handleInputChange("image_url", e.target.value)}
               placeholder="https://example.com/image.jpg"
-            />
+            /> */}
+            <ImageUpload/>
           </div>
 
           {/* NEW: Product sizes section */}

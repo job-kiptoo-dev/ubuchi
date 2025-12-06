@@ -35,7 +35,7 @@ export default function AboutSection() {
           </div>
           <div className="relative aspect-[4/5] lg:aspect-auto lg:h-[600px]">
             <Image
-              src="/placeholder.svg"
+              src="/ubuchiTeaPics/WomenPickingTea.jpg"
               alt="Kenyan tea farmer working in the fields"
               fill
               className="rounded-lg shadow-2xl border border-neutral-200 object-cover"

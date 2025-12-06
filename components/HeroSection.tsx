@@ -11,7 +11,7 @@ export default function HeroSection() {
    <section className="relative h-screen flex items-center justify-center overflow-hidden">
       <div className="absolute inset-0">
         <Image
-          src="/green.jpg"
+          src="/teaFarm.jpg"
           alt="Kenyan tea fields"
           fill
           priority
@@ -19,7 +19,7 @@ export default function HeroSection() {
           sizes="100vw"
           quality={90}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-neutral-900/60 via-neutral-900/50 to-neutral-900/70" />
+        <div className="absolute inset-0 bg-gradient-to-b from-neutral-900/60 via-neutral-900/50 to-neutral-900/70" ></div>
       </div>
 
       <div className="relative z-10 text-center text-white max-w-5xl mx-auto px-4 animate-in fade-in slide-in-from-bottom-8 duration-700">

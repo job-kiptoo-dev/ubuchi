@@ -347,59 +347,7 @@ export default async function ProductsPage({
           </div>
         </div>
 
-        {!error &&
-          !resolvedSearchParams.search &&
-          !resolvedSearchParams.category && (
-            <div className="mt-16 bg-white rounded-2xl shadow-lg border border-neutral-200 p-8">
-              <h2 className="text-2xl font-serif text-neutral-900 text-center mb-8">
-                Shop by Category
-              </h2>
-              <div className="grid md:grid-cols-3 gap-6">
-                <Link
-                  href="/products?category=Tea"
-                  className="text-center group"
-                >
-                  <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-emerald-200 transition-colors">
-                    <Leaf className="h-8 w-8 text-emerald-600" />
-                  </div>
-                  <h3 className="font-serif text-neutral-900 mb-2">
-                    Premium Tea
-                  </h3>
-                  <p className="text-sm text-neutral-600 font-light">
-                    Organic Kenyan tea leaves
-                  </p>
-                </Link>
-                <Link
-                  href="/products?category=Coffee"
-                  className="text-center group"
-                >
-                  <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-amber-200 transition-colors">
-                    <Award className="h-8 w-8 text-amber-600" />
-                  </div>
-                  <h3 className="font-serif text-neutral-900 mb-2">
-                    Fresh Coffee
-                  </h3>
-                  <p className="text-sm text-neutral-600 font-light">
-                    Medium-roast coffee beans
-                  </p>
-                </Link>
-                <Link
-                  href="/products?category=Chocolate"
-                  className="text-center group"
-                >
-                  <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-rose-200 transition-colors">
-                    <Heart className="h-8 w-8 text-rose-600" />
-                  </div>
-                  <h3 className="font-serif text-neutral-900 mb-2">
-                    Hot Chocolate
-                  </h3>
-                  <p className="text-sm text-neutral-600 font-light">
-                    Rich cocoa mix
-                  </p>
-                </Link>
-              </div>
-            </div>
-          )}
+      
       </div>
     </div>
   );

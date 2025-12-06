@@ -20,7 +20,7 @@ export default function JourneySection() {
               <div className="relative mb-6">
                 <div className="relative aspect-square">
                   <Image
-                    src="/placeholder.svg"
+                    src={item.src}
                     alt={item.alt}
                     fill
                     className="rounded-lg shadow-lg border border-neutral-200 object-cover"
