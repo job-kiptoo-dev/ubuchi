@@ -27,8 +27,7 @@ export default function ContactPage() {
     // Simulate form submission
     await new Promise((resolve) => setTimeout(resolve, 1000))
 
-    toast.sucsses({
-      title: "Message sent!",
+    toast( "Message sent!",{
       description: "We'll get back to you as soon as possible.",
     })
 

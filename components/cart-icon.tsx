@@ -10,41 +10,48 @@ import { createClient } from "@/lib/supabase/client"
 export default function CartIcon({ userId }: { userId?: string }) {
   const [itemCount, setItemCount] = useState(0)
 
-  useEffect(() => {
-    if (!userId) return
+useEffect(() => {
+  if (!userId) return
 
-    const supabase = createClient()
+  const supabase = createClient()
 
-    const fetchCartCount = async () => {
-      const { count, error } = await supabase
-        .from("cart_items")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", userId)
+  const fetchCartCount = async () => {
+    const { count, error } = await supabase
+      .from("cart_items")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId)
 
-      if (!error) {
-        setItemCount(count || 0)
-      }
+    if (!error) {
+      setItemCount(count || 0)
     }
+  }
 
-    fetchCartCount()
+  fetchCartCount()
 
-    // REALTIME updates
-    const channel = supabase
-      .channel("cart_items_changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "cart_items",
-          filter: `user_id=eq.${userId}`,
-        },
-        () => fetchCartCount()
-      )
-      .subscribe()
+  // REALTIME updates
+  const channel = supabase
+    .channel("cart_items_changes")
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "cart_items",
+        filter: `user_id=eq.${userId}`,
+      },
+      () => {
+        fetchCartCount()
+      }
+    )
+    .subscribe()
 
-    return () => supabase.removeChannel(channel)
-  }, [userId])
+  // Cleanup must be synchronous
+  return () => {
+    // Supabase's removeChannel can return a Promise, so wrap in void
+    void supabase.removeChannel(channel)
+  }
+}, [userId])
+
 
   return (
     <Link href="/cart">
