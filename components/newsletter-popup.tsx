@@ -104,7 +104,7 @@ export default function NewsletterPopup() {
                 </div>
               </div>
               <h4 className="text-white font-semibold mb-1">Welcome!</h4>
-              <p className="text-white/70 text-sm">Check your inbox for wellness tips and exclusive offers.</p>
+              <p className="text-white/70 text-sm">Receive 15% on your next purchase. You will get up dates about new teas, events and brewing tips.</p>
             </div>
           )}
         </div>

@@ -26,6 +26,6 @@ export const JourneyData = [
     title: "Shipped with Love",
     description: "Your wellness ritual arrives fresh, carrying the spirit of Ubuntu and Chi.",
     alt: "Packaged tea products ready for shipping",
-    src: "/teaPhoto/Ubuchi_back_label_with_trails_of_tea_prop.jpg"
+    src: "/teaPhoto/shiped-with-love.jpg"
   }
 ]

@@ -10,7 +10,9 @@ import AboutSection from "@/components/AboutSection";
 import FeatureSection from "@/components/FeatureSection";
 import HeroSection from "@/components/HeroSection";
 import { navLinks } from "@/lib/Links/navLinks";
-import NavBar from "@/components/navBar";
+import NavBar from "@/components/navBar"
+import MissionSection from "@/components/mission-section";
+import PromiseSection from "@/components/promise-section";
 
 interface Profile {
   role: string;
@@ -47,6 +49,11 @@ export default async function HomePage() {
       <JourneySection />
       {/* Products Section */}
       <ProductSection />
+
+      {/* Mission Section */}
+     <MissionSection/> 
+
+      <PromiseSection/>
       {/* Newsletter Section */}
       <Newsletter />
       {/* Footer */}

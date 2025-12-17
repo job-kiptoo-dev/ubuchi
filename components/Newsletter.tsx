@@ -35,7 +35,7 @@ export default function Newsletter() {
               <Button
                 type="submit"
                 // disabled={state === "loading" || !email}
-                className="h-12 bg-primary px-8 text-base font-semibold text-primary-foreground transition-all hover:bg-primary/90 disabled:opacity-50"
+                className="h-12 bg-primary px-8 text-base font-semibold text-primary-foreground transition-all hover:bg-primary/90 disabled:opacity-50 bg-emerald-600 hover:bg-emerald-700"
               >
                 Subscribe
               </Button>

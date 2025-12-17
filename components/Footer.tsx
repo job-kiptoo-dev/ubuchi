@@ -1,6 +1,6 @@
-import { footerSections, footerT, LinkItem } from "@/lib/Links/footerLink";
-import { Leaf } from "lucide-react";
-import Link from "next/link";
+import { footerSections, type LinkItem } from "@/lib/Links/footerLink"
+import { Leaf } from "lucide-react"
+import Link from "next/link"
 
 export default function Footer() {
   return (
@@ -14,8 +14,7 @@ export default function Footer() {
               <span className="text-2xl font-serif text-neutral-900">Úbūchi</span>
             </div>
             <p className="text-neutral-600 font-light mb-4">
-              Tea cultivated to restore. Rooted in African traditions, powered
-              by women farmers.
+              Tea cultivated to restore. Rooted in African traditions, powered by women farmers.
             </p>
           </div>
 
@@ -25,7 +24,6 @@ export default function Footer() {
               <h3 className="font-serif mb-4 text-neutral-900">{title}</h3>
               <ul className="space-y-2 text-neutral-600 font-light">
                 {links.map((link: LinkItem) => (
-
                   <li key={link.href}>
                     {link.external ? (
                       <Link
@@ -37,10 +35,7 @@ export default function Footer() {
                         {link.label}
                       </Link>
                     ) : (
-                      <Link
-                        href={link.href}
-                        className="hover:text-neutral-900 transition-colors"
-                      >
+                      <Link href={link.href} className="hover:text-neutral-900 transition-colors">
                         {link.label}
                       </Link>
                     )}
@@ -53,12 +48,10 @@ export default function Footer() {
 
         {/* Copyright */}
         <div className="border-t border-neutral-200 mt-12 pt-8 text-center text-neutral-600 font-light">
-          <p>
-            &copy; {new Date().getFullYear()} Úbūchi. All rights reserved. Made
-            with Ubuntu and Chi.
-          </p>
+          <p>&copy; {new Date().getFullYear()} Úbūchi. All rights reserved. Made with Ubuntu and Chi.</p>
         </div>
       </div>
     </footer>
   )
 }
+

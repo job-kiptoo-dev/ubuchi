@@ -98,7 +98,7 @@ export default function ProductSection() {
             Featured Products
           </h2>
           <p className="text-neutral-600 font-light">
-            Premium tea, coffee, and chocolate crafted with care
+            Premium tea crafted with care
           </p>
         </div>
 

@@ -11,7 +11,7 @@ export default function HeroSection() {
    <section className="relative h-screen flex items-center justify-center overflow-hidden">
       <div className="absolute inset-0">
         <Image
-          src="/teaFarm.jpg"
+          src="/ubuchiTeaPics/main.jpg"
           alt="Kenyan tea fields"
           fill
           priority
