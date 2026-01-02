@@ -7,6 +7,7 @@ import AuthNav from "@/components/auth-nav"
 import AddToCartButton from "@/components/add-to-cart-button"
 import { createClient } from "@/lib/supabase/server"
 import Image from "next/image"
+import ProductDescription from "@/components/readmore"
 
 interface ProductPageProps {
   params: Promise<{
@@ -135,9 +136,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             </div>
 
             {/* Description */}
-            <div>
-              <p className="text-base leading-relaxed text-gray-700 mb-4">{product.description}</p>
-            </div>
+            <ProductDescription description={product.description} />
 
             {/* Size Selection */}
             {sizes.length > 0 && (

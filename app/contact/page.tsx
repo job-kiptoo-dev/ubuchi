@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import Link from "next/link"
-import { ArrowLeft, Leaf, Mail, MapPin, Phone } from "lucide-react"
+import { ArrowLeft, Mail, MapPin, Phone } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -24,15 +24,34 @@ export default function ContactPage() {
     e.preventDefault()
     setIsSubmitting(true)
 
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    try {
+      const response = await fetch("/api/send", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      })
 
-    toast( "Message sent!",{
-      description: "We'll get back to you as soon as possible.",
-    })
+      const data = await response.json()
 
-    setFormData({ name: "", email: "", subject: "", message: "" })
-    setIsSubmitting(false)
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to send message")
+      }
+
+      toast("Message sent!", {
+        description: "We'll get back to you as soon as possible.",
+      })
+
+      setFormData({ name: "", email: "", subject: "", message: "" })
+    } catch (error) {
+      console.error("Error:", error)
+      toast("Error", {
+        description: error instanceof Error ? error.message : "Failed to send message. Please try again.",
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -89,7 +108,7 @@ export default function ContactPage() {
                       <MapPin className="h-5 w-5 text-neutral-400 mt-1" />
                       <div>
                         <p className="font-medium mb-1">Location</p>
-                        <p className="text-neutral-600">Copenhagen, Denmark</p>
+                        <p className="text-neutral-600">Kenya, Kericho</p>
                       </div>
                     </div>
 
@@ -198,4 +217,3 @@ export default function ContactPage() {
     </>
   )
 }
-
