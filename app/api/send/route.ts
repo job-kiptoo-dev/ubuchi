@@ -9,7 +9,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { name, email, subject, message } = body;
 
-    console.log('📧 Received form data:', { name, email, subject });
+    // console.log('📧 Received form data:', { name, email, subject });
 
     // Validate the data
     if (!name || !email || !subject || !message) {
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check if API key exists
+      // Check if API key exists
     if (!process.env.RESEND_API_KEY) {
       console.error('❌ RESEND_API_KEY is not set');
       return NextResponse.json(
@@ -29,11 +29,11 @@ export async function POST(request: Request) {
       );
     }
 
-    console.log('📤 Attempting to send email via Resend...');
+    console.log(' Attempting to send email via Resend...');
 
     const { data, error } = await resend.emails.send({
       from: 'Ubuchi Tea <onboarding@resend.dev>',
-      to: ['kiptoojob73@gmail.com'],
+      to: ['hello@ubuchi.com'],
       replyTo: email,
       subject: `Get in touch: ${subject}`,
       react: EmailTemplate({ 
@@ -49,11 +49,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message || 'Failed to send email' }, { status: 500 });
     }
 
-    console.log('✅ Email sent successfully!', data);
+    // console.log('✅ Email sent successfully!', data);
     return NextResponse.json(data);
     
   } catch (error) {
-    console.error('❌ Unexpected error in /api/send:', error);
+    console.error(' Unexpected error in /api/send:', error);
     console.error('Error details:', {
       message: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : undefined,

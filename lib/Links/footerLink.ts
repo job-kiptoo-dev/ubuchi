@@ -17,6 +17,8 @@ export const footerSections: footerT[] = [
       { href: "/products?category=hormonal", label: "Hormonal Balance" },
       { href: "/products?category=energy", label: "Energy Boost" },
       { href: "/products?category=sleep", label: "Sleep Support" },
+           { href: "/products?category=inflammation", label: "Inflammation Support" },
+      
     ],
   },
     {

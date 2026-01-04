@@ -15,7 +15,7 @@ export const EmailTemplate: React.FC<Readonly<EmailTemplateProps>> = ({
 }) => (
   <div style={{ fontFamily: 'Arial, sans-serif', maxWidth: '600px', margin: '0 auto' }}>
     <div style={{ backgroundColor: '#f3f4f6', padding: '20px', borderRadius: '8px' }}>
-      <h2 style={{ color: '#1f2937', marginTop: '0' }}>New Contact Form Submission</h2>
+      <h2 style={{ color: '#1f2937', marginTop: '0' }}>Lets Get In Touch</h2>
       
       <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '6px', marginTop: '20px' }}>
         <p style={{ margin: '10px 0' }}>

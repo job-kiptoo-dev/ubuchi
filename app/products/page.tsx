@@ -10,9 +10,10 @@ import AuthNav from "@/components/auth-nav";
 import Image from "next/image";
 
 interface SearchParams {
-  category?: string;
+  tea?: string;
   search?: string;
 }
+
 
 interface ProductsPageProps {
   searchParams: Promise<SearchParams>;
@@ -20,7 +21,7 @@ interface ProductsPageProps {
 
 export const revalidate = 300;
 
-async function getPageData(category?: string, search?: string) {
+async function getPageData(tea?: string, search?: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   
@@ -47,9 +48,10 @@ async function getPageData(category?: string, search?: string) {
           .eq('is_active', true)
           .order('created_at', { ascending: false });
         
-        if (category) {
-          query = query.eq("category", category);
-        }
+       if (tea) {
+  query = query.eq("tea_type", tea);
+}
+
 
         if (search) {
           query = query.ilike("name", `%${search}%`);
@@ -98,7 +100,7 @@ export default async function ProductsPage({
 }: ProductsPageProps) {
   const resolvedSearchParams = await searchParams;
   const { user, isAdmin, products, error } = await getPageData(
-    resolvedSearchParams.category,
+    resolvedSearchParams.tea,
     resolvedSearchParams.search
   );
 
@@ -171,17 +173,16 @@ export default async function ProductsPage({
           <div className="flex flex-col lg:flex-row gap-8">
             <div className="lg:w-64 flex-shrink-0">
               <Suspense fallback={<div>Loading filters...</div>}>
-                <ProductFilters
-                  currentCategory={resolvedSearchParams.category}
-                />
+               <ProductFilters currentTea={resolvedSearchParams.tea} />
+
               </Suspense>
             </div>
 
             <div className="flex-1">
               <div className="flex justify-between items-center mb-8">
                 <h2 className="text-2xl font-serif text-neutral-900">
-                  {resolvedSearchParams.category
-                    ? `${resolvedSearchParams.category.charAt(0).toUpperCase() + resolvedSearchParams.category.slice(1)} Products`
+                  {resolvedSearchParams.tea
+                    ? `${resolvedSearchParams.tea.charAt(0).toUpperCase() + resolvedSearchParams.tea.slice(1)} Tea`
                     : resolvedSearchParams.search
                       ? `Search Results for "${resolvedSearchParams.search}"`
                       : "All Products"}

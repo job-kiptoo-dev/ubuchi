@@ -25,7 +25,7 @@ export default function ProductSection() {
             .select("id, name, description, price, category, image_url, stock_quantity, is_active")
             .eq("is_active", true)
             .order("created_at", { ascending: false })
-            .limit(3),
+            .limit(4),
           supabase
             .from("product_sizes")
             .select("id, product_id, size_grams, price, stock_quantity")
