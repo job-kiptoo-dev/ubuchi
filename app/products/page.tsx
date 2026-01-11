@@ -13,6 +13,7 @@ import TeaBenefitFilter from "@/components/product-filters";
 interface SearchParams {
 	category?: string;
 	search?: string;
+	tea?: string; // Add this line
 }
 
 interface ProductsPageProps {
@@ -21,7 +22,7 @@ interface ProductsPageProps {
 
 export const revalidate = 300;
 
-async function getPageData(category?: string, search?: string) {
+async function getPageData(category?: string, search?: string, tea?: string) {
 	const supabase = await createClient();
 	const {
 		data: { user },
@@ -50,8 +51,9 @@ async function getPageData(category?: string, search?: string) {
             category, 
             image_url, 
             stock_quantity,
-            is_active
-          `)
+            is_active,
+            tea_type
+          `) // Added tea_type to select
 					.eq("is_active", true)
 					.order("created_at", {
 						ascending: false,
@@ -63,6 +65,11 @@ async function getPageData(category?: string, search?: string) {
 
 				if (search) {
 					query = query.ilike("name", `%${search}%`);
+				}
+
+				// Add tea type filter
+				if (tea) {
+					query = query.eq("tea_type", tea);
 				}
 
 				return query;
@@ -112,6 +119,7 @@ async function getPageData(category?: string, search?: string) {
 	}
 }
 
+// Update the component call to getPageData
 export default async function ProductsPage({
 	searchParams,
 }: ProductsPageProps) {
@@ -119,7 +127,9 @@ export default async function ProductsPage({
 	const { user, isAdmin, products, error } = await getPageData(
 		resolvedSearchParams.category,
 		resolvedSearchParams.search,
+		resolvedSearchParams.tea // Add this parameter
 	);
+
 
 	const getCategoryIcon = (category: string) => {
 		switch (category.toLowerCase()) {
