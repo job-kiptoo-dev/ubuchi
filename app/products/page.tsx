@@ -191,7 +191,6 @@ export default async function ProductsPage({
                   {products?.length || 0} products
                 </p>
               </div>
-
               {error && (
                 <div className="mb-8 p-4 bg-red-50 border border-red-200 rounded-lg">
                   <div className="flex items-center">
