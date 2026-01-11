@@ -1,17 +1,23 @@
 "use client";
+
 import { useEffect, useRef, useState } from "react";
 
-function ProductDescription({ description }: { description?: string }) {
+type ProductDescriptionProps = {
+  description?: string;
+};
+
+export default function ProductDescription({
+  description,
+}: ProductDescriptionProps) {
   const [expanded, setExpanded] = useState(false);
   const [isOverflowing, setIsOverflowing] = useState(false);
-  const textRef = useRef(null);
+  const textRef = useRef<HTMLParagraphElement | null>(null);
 
   useEffect(() => {
-    if (textRef.current) {
-      setIsOverflowing(
-        textRef.current.scrollHeight > textRef.current.clientHeight
-      );
-    }
+    const el = textRef.current;
+    if (!el) return;
+
+    setIsOverflowing(el.scrollHeight > el.clientHeight);
   }, [description]);
 
   if (!description) return null;
@@ -42,7 +48,7 @@ function ProductDescription({ description }: { description?: string }) {
       {/* Toggle */}
       {isOverflowing && (
         <button
-          onClick={() => setExpanded(!expanded)}
+          onClick={() => setExpanded((v) => !v)}
           className="mt-2 text-sm font-medium text-green-600 hover:underline"
         >
           {expanded ? "Read less" : "Read more"}
@@ -51,5 +57,3 @@ function ProductDescription({ description }: { description?: string }) {
     </div>
   );
 }
-
-export default ProductDescription;
